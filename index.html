@@ -876,27 +876,42 @@
   setupSelects();
 
   try {
-    const res = await fetch('/api/football-data');
+    // Le paramètre ?_t=Date.now() force Vercel à ne pas utiliser de mémoire cache
+    const res = await fetch(`/api/football-data?_t=${Date.now()}`);
     const data = await res.json();
 
     if (data.success) {
-      // Mise à jour automatique des buteurs
+      // 1. Mise à jour des buteurs
       if (data.topScorers && data.topScorers.length > 0) {
         topScorers = data.topScorers;
       }
       
-      // Passage automatique à la journée en cours
+      // 2. Bascule automatique sur la bonne journée
       if (data.currentJournee) {
-        currentJournee = data.currentJournee;
+        currentJournee = parseInt(data.currentJournee);
+        
+        // Trouve le mois correspondant à cette journée
+        const monthObj = moisSaison.find(m => m.journees.includes(currentJournee));
+        if (monthObj) {
+          const selectMois = document.getElementById("select-mois");
+          if (selectMois) selectMois.value = monthObj.id;
+          
+          // Re-remplit le select des journées pour ce mois
+          filterJourneesByMonth();
+        }
+        
+        // Sélectionne la journée et affiche ses matchs
         const selectJ = document.getElementById("select-journee");
         if (selectJ) selectJ.value = currentJournee;
+        
         renderMatches();
       }
     }
   } catch (err) {
-    console.log("Erreur de synchronisation API");
+    console.log("Erreur de synchronisation API", err);
   }
 
+  // Met à jour le classement et la liste des buteurs sur l'écran
   renderStandingsAndStats();
 });
 </script>
