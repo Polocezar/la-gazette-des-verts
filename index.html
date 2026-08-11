@@ -528,14 +528,13 @@
     </div>
   </div>
 
-  <script>
+ <script>
   let articlesData = [];
 
-  // Traitement du flux Google News (presse locale, nationale, FFF, web)
+  // Traitement du flux Google News
   window.handleGoogleNewsResponse = function(data) {
     if (data && data.status === "ok" && data.items && data.items.length > 0) {
       articlesData = data.items.slice(0, 15).map((item, index) => {
-        // Découpage du titre Google News pour séparer le titre et le nom du journal
         let titleParts = item.title.split(" - ");
         let sourceName = titleParts.length > 1 ? titleParts.pop() : "Presse Web";
         let cleanTitle = titleParts.join(" - ");
@@ -544,7 +543,7 @@
           id: index + 1,
           title: cleanTitle,
           source: sourceName,
-          content: cleanHTML(item.description || item.content)
+          link: item.link || item.guid
         };
       });
       renderArticles();
@@ -560,7 +559,6 @@
     const oldScript = document.getElementById("rss-jsonp-script");
     if (oldScript) oldScript.remove();
 
-    // Recherche globale Google News sur l'AS Saint-Étienne
     const googleNewsUrl = "https://news.google.com/rss/search?q=AS+Saint-Etienne&hl=fr&gl=FR&ceid=FR:fr";
     
     const script = document.createElement("script");
@@ -574,21 +572,12 @@
     document.body.appendChild(script);
   }
 
-  // Actualités de secours au cas où l'accès réseau échoue
   function loadFallbackNews() {
     articlesData = [
-      { id: 1, title: "Prochain match des Verts : Préparation tactique à L'Étrat", source: "Presse Web", content: "L'effectif stéphanois affine sa préparation pour la rencontre à venir." },
-      { id: 2, title: "Point d'effectif : Le bilan médical du staff de l'ASSE", source: "Presse Web", content: "Mise à jour sur l'état de forme des joueurs stéphanois et les retours de blessure." },
-      { id: 3, title: "Analyse : Les priorités tactiques travaillées à l'entraînement", source: "Presse Web", content: "Focus sur la mise en place du groupe stéphanois pour les prochaines journées." }
+      { id: 1, title: "Prochain match des Verts : Préparation tactique à L'Étrat", source: "Presse Web", link: "https://www.asse.fr" },
+      { id: 2, title: "Point d'effectif : Le bilan médical du staff de l'ASSE", source: "Presse Web", link: "https://www.asse.fr" }
     ];
     renderArticles();
-  }
-
-  function cleanHTML(str) {
-    if (!str) return "Cliquez pour lire l'article.";
-    const temp = document.createElement("div");
-    temp.innerHTML = str;
-    return (temp.textContent || temp.innerText || "").trim();
   }
 
   function renderArticles(list = articlesData) {
@@ -600,7 +589,7 @@
 
     container.innerHTML = list.map(a => `
       <div class="news-item" id="article-item-${a.id}">
-        <span class="news-title" onclick="openArticle(${a.id})">${a.title}</span>
+        <a class="news-title" href="${a.link}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;">${a.title}</a>
         <span class="news-source">Source : ${a.source}</span>
         <span class="news-delete" onclick="deleteArticle(${a.id})" title="Masquer">×</span>
       </div>
@@ -612,21 +601,6 @@
     renderArticles();
   }
 
-  function addNewArticle() {
-    const title = prompt("Titre de l'article :");
-    if (!title) return;
-    const source = prompt("Source :", "Gazette") || "Gazette";
-    const content = prompt("Contenu :");
-
-    articlesData.unshift({
-      id: Date.now(),
-      title,
-      source,
-      content: content || "Aucun contenu renseigné."
-    });
-    renderArticles();
-  }
-
   function filterArticles() {
     const query = document.getElementById("search-news").value.toLowerCase();
     const filtered = articlesData.filter(a => 
@@ -634,20 +608,6 @@
       a.source.toLowerCase().includes(query)
     );
     renderArticles(filtered);
-  }
-
-  function openArticle(id) {
-    const article = articlesData.find(a => a.id === id);
-    if (article) {
-      document.getElementById("modal-article-title").textContent = article.title;
-      document.getElementById("modal-article-source").textContent = `Source : ${article.source}`;
-      document.getElementById("modal-article-body").textContent = article.content;
-      document.getElementById("article-modal").style.display = "flex";
-    }
-  }
-
-  function closeArticle() {
-    document.getElementById("article-modal").style.display = "none";
   }
 
   const moisSaison = [
@@ -675,11 +635,11 @@
   let seasonMatches = {};
 
   let topScorers = [
-    { name: "Cardona", club: "ASSE", goals: 2 },
-    { name: "Prutsev", club: "Dunkerque", goals: 2 },
-    { name: "Breum", club: "ASSE", goals: 1 },
+    { name: "Irvin Cardona", club: "ASSE", goals: 2 },
+    { name: "Egor Prutsev", club: "Dunkerque", goals: 2 },
+    { name: "Yadaly Diaby", club: "Grenoble", goals: 2 },
     { name: "Cabral", club: "Red Star", goals: 1 },
-    { name: "Hein", club: "Metz", goals: 1 }
+    { name: "Gauthier Hein", club: "Metz", goals: 1 }
   ];
 
   function initSeason() {
@@ -832,103 +792,51 @@
     topScorers.sort((a, b) => b.goals - a.goals);
 
     const scorersBody = document.getElementById("top-scorers-body");
-    scorersBody.innerHTML = topScorers.slice(0, 5).map((s, idx) => `
-      <tr class="${s.club === "ASSE" ? 'highlight-asse' : ''}">
-        <td><strong>${idx + 1}</strong></td>
-        <td>${s.name}</td>
-        <td style="color: var(--text-muted);">${s.club}</td>
-        <td style="text-align: right; font-weight: bold;">${s.goals}</td>
-      </tr>
-    `).join("");
-  }
-
-  function saveAndRecalculate() {
-    const matches = seasonMatches[currentJournee];
-    matches.forEach((m, idx) => {
-      const hVal = document.getElementById(`home-${idx}`).value;
-      const aVal = document.getElementById(`away-${idx}`).value;
-      m.homeScore = hVal !== "" ? parseInt(hVal) : "";
-      m.awayScore = aVal !== "" ? parseInt(aVal) : "";
-    });
-    renderStandingsAndStats();
-  }
-
-  function resetSeason() {
-    initSeason();
-    renderMatches();
-    renderStandingsAndStats();
-  }
-
-  function addNewScorer() {
-    const name = prompt("Nom du joueur :");
-    const club = prompt("Club (ex: ASSE) :");
-    const goals = parseInt(prompt("Nombre de buts :") || "0");
-
-    if (name && club) {
-      topScorers.push({ name, club, goals });
-      renderStandingsAndStats();
+    if (scorersBody) {
+      scorersBody.innerHTML = topScorers.slice(0, 5).map((s, idx) => `
+        <tr class="${s.club === "ASSE" ? 'highlight-asse' : ''}">
+          <td><strong>${idx + 1}</strong></td>
+          <td>${s.name}</td>
+          <td style="color: var(--text-muted);">${s.club}</td>
+          <td style="text-align: right; font-weight: bold;">${s.goals}</td>
+        </tr>
+      `).join("");
     }
   }
 
   document.addEventListener("DOMContentLoaded", async () => {
-  loadArticles();
-  initSeason();
-  setupSelects();
+    loadArticles();
+    initSeason();
+    setupSelects();
 
-  try {
-    // Le paramètre ?_t=Date.now() force Vercel à ne pas utiliser de mémoire cache
-    const res = await fetch(`/api/football-data?_t=${Date.now()}`);
-    const data = await res.json();
+    try {
+      const res = await fetch(`/api/football-data?_t=${Date.now()}`);
+      const data = await res.json();
 
-    if (data.success) {
-      // 1. Mise à jour des buteurs
-      if (data.topScorers && data.topScorers.length > 0) {
-        topScorers = data.topScorers;
-      }
-      
-      // 2. Bascule automatique sur la bonne journée
-      if (data.currentJournee) {
-        currentJournee = parseInt(data.currentJournee);
-        
-        // Trouve le mois correspondant à cette journée
-        const monthObj = moisSaison.find(m => m.journees.includes(currentJournee));
-        if (monthObj) {
-          const selectMois = document.getElementById("select-mois");
-          if (selectMois) selectMois.value = monthObj.id;
-          
-          // Re-remplit le select des journées pour ce mois
-          filterJourneesByMonth();
+      if (data.success) {
+        if (data.topScorers && data.topScorers.length > 0) {
+          topScorers = data.topScorers;
         }
-        
-        // Sélectionne la journée et affiche ses matchs
-        const selectJ = document.getElementById("select-journee");
-        if (selectJ) selectJ.value = currentJournee;
-        
-        renderMatches();
-      }
-    }
-  } catch (err) {
-    console.log("Erreur de synchronisation API", err);
-  }
 
-  // Met à jour le classement et la liste des buteurs sur l'écran
-  renderStandingsAndStats();
-});
-        
-        // Sélectionne la journée et affiche ses matchs
-        const selectJ = document.getElementById("select-journee");
-        if (selectJ) selectJ.value = currentJournee;
-        
-        renderMatches();
+        if (data.currentJournee) {
+          currentJournee = parseInt(data.currentJournee);
+          const monthObj = moisSaison.find(m => m.journees.includes(currentJournee));
+          if (monthObj) {
+            const selectMois = document.getElementById("select-mois");
+            if (selectMois) selectMois.value = monthObj.id;
+            filterJourneesByMonth();
+          }
+          const selectJ = document.getElementById("select-journee");
+          if (selectJ) selectJ.value = currentJournee;
+          renderMatches();
+        }
       }
+    } catch (err) {
+      console.log("Erreur de synchronisation API", err);
     }
-  } catch (err) {
-    console.log("Erreur de synchronisation API", err);
-  }
 
-  // Met à jour le classement et la liste des buteurs sur l'écran
-  renderStandingsAndStats();
-});
+    renderStandingsAndStats();
+  });
 </script>
 </body>
 </html>
