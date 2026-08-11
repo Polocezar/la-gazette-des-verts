@@ -870,12 +870,35 @@
     }
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    loadArticles();
-    initSeason();
-    setupSelects();
-    renderStandingsAndStats();
-  });
+  document.addEventListener("DOMContentLoaded", async () => {
+  loadArticles();
+  initSeason();
+  setupSelects();
+
+  try {
+    const res = await fetch('/api/football-data');
+    const data = await res.json();
+
+    if (data.success) {
+      // Mise à jour automatique des buteurs
+      if (data.topScorers && data.topScorers.length > 0) {
+        topScorers = data.topScorers;
+      }
+      
+      // Passage automatique à la journée en cours
+      if (data.currentJournee) {
+        currentJournee = data.currentJournee;
+        const selectJ = document.getElementById("select-journee");
+        if (selectJ) selectJ.value = currentJournee;
+        renderMatches();
+      }
+    }
+  } catch (err) {
+    console.log("Erreur de synchronisation API");
+  }
+
+  renderStandingsAndStats();
+});
 </script>
 </body>
 </html>
