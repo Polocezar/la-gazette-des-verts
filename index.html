@@ -914,6 +914,21 @@
   // Met à jour le classement et la liste des buteurs sur l'écran
   renderStandingsAndStats();
 });
+        
+        // Sélectionne la journée et affiche ses matchs
+        const selectJ = document.getElementById("select-journee");
+        if (selectJ) selectJ.value = currentJournee;
+        
+        renderMatches();
+      }
+    }
+  } catch (err) {
+    console.log("Erreur de synchronisation API", err);
+  }
+
+  // Met à jour le classement et la liste des buteurs sur l'écran
+  renderStandingsAndStats();
+});
 </script>
 </body>
 </html>
