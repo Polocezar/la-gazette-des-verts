@@ -804,7 +804,7 @@
     }
   }
 
-  document.addEventListener("DOMContentLoaded", async () => {
+ document.addEventListener("DOMContentLoaded", async () => {
     loadArticles();
     initSeason();
     setupSelects();
@@ -814,20 +814,31 @@
       const data = await res.json();
 
       if (data.success) {
+        // 1. Mise à jour des buteurs
         if (data.topScorers && data.topScorers.length > 0) {
           topScorers = data.topScorers;
         }
 
+        // 2. Bascule dynamique sur la journée reçue de l'API (ex: Journée 2)
         if (data.currentJournee) {
           currentJournee = parseInt(data.currentJournee);
+
+          // Trouve le mois correspondant à cette journée
           const monthObj = moisSaison.find(m => m.journees.includes(currentJournee));
           if (monthObj) {
             const selectMois = document.getElementById("select-mois");
             if (selectMois) selectMois.value = monthObj.id;
-            filterJourneesByMonth();
+
+            // Remplir le sélecteur avec les journées du mois
+            const journeeSelect = document.getElementById("select-journee");
+            if (journeeSelect) {
+              journeeSelect.innerHTML = monthObj.journees.map(j => `<option value="${j}">Journée ${j}</option>`).join("");
+              // Sélectionner la journée désirée (Journée 2) SANS repasser par filterJourneesByMonth
+              journeeSelect.value = currentJournee;
+            }
           }
-          const selectJ = document.getElementById("select-journee");
-          if (selectJ) selectJ.value = currentJournee;
+          
+          // Recharger l'affichage des matchs pour cette journée
           renderMatches();
         }
       }
