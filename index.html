@@ -462,7 +462,7 @@
       "Pau FC", "FC Annecy"
     ];
 
-    let currentJournee = 1;
+    let currentJournee = 2;
     let seasonMatches = {};
 
     let topScorers = [
@@ -473,16 +473,10 @@
       { name: "Gauthier Hein", club: "Metz", goals: 1 }
     ];
 
-    function initSeason() {
-      const savedMatches = localStorage.getItem("gazette_season_matches");
-      if (savedMatches) {
-        seasonMatches = JSON.parse(savedMatches);
-        return;
-      }
-
-      seasonMatches = {};
+    function createDefaultSeasonMatches() {
+      let matches = {};
       for (let j = 1; j <= 34; j++) {
-        seasonMatches[j] = [];
+        matches[j] = [];
         let shift = (j - 1) % (clubs.length - 1);
         for (let i = 0; i < clubs.length / 2; i++) {
           let homeIdx = (i + shift) % (clubs.length - 1);
@@ -490,15 +484,15 @@
           if (i === 0) awayIdx = clubs.length - 1;
           
           if (j % 2 === 0) {
-            seasonMatches[j].push({ home: clubs[awayIdx], homeScore: "", awayScore: "", away: clubs[homeIdx] });
+            matches[j].push({ home: clubs[awayIdx], homeScore: "", awayScore: "", away: clubs[homeIdx] });
           } else {
-            seasonMatches[j].push({ home: clubs[homeIdx], homeScore: "", awayScore: "", away: clubs[awayIdx] });
+            matches[j].push({ home: clubs[homeIdx], homeScore: "", awayScore: "", away: clubs[awayIdx] });
           }
         }
       }
 
-      // Journée 1 par défaut
-      seasonMatches[1] = [
+      // Journée 1
+      matches[1] = [
         { home: "FC Sochaux-Montbéliard", homeScore: 0, awayScore: 3, away: "AS Saint-Étienne" },
         { home: "Clermont Foot 63", homeScore: 0, awayScore: 0, away: "Stade de Reims" },
         { home: "Dijon FCO", homeScore: 1, awayScore: 1, away: "Montpellier HSC" },
@@ -510,6 +504,34 @@
         { home: "Pau FC", homeScore: 0, awayScore: 1, away: "FC Annecy" }
       ];
 
+      // Journée 2
+      matches[2] = [
+        { home: "FC Annecy", homeScore: 1, awayScore: 1, away: "FC Sochaux-Montbéliard" },
+        { home: "AS Saint-Étienne", homeScore: 2, awayScore: 0, away: "Clermont Foot 63" },
+        { home: "Pau FC", homeScore: 0, awayScore: 2, away: "Stade de Reims" },
+        { home: "US Boulogne", homeScore: 1, awayScore: 1, away: "Dijon FCO" },
+        { home: "AS Nancy-Lorraine", homeScore: 1, awayScore: 2, away: "Montpellier HSC" },
+        { home: "EA Guingamp", homeScore: 0, awayScore: 0, away: "USL Dunkerque" },
+        { home: "FC Metz", homeScore: 1, awayScore: 1, away: "Grenoble Foot 38" },
+        { home: "Red Star FC", homeScore: 2, awayScore: 1, away: "Rodez AF" },
+        { home: "FC Nantes", homeScore: 0, awayScore: 0, away: "Stade Lavallois" }
+      ];
+
+      return matches;
+    }
+
+    function initSeason() {
+      const savedMatches = localStorage.getItem("gazette_season_matches");
+      if (savedMatches) {
+        try {
+          const parsed = JSON.parse(savedMatches);
+          if (parsed && Object.keys(parsed).length > 0) {
+            seasonMatches = parsed;
+            return;
+          }
+        } catch(e) {}
+      }
+      seasonMatches = createDefaultSeasonMatches();
       localStorage.setItem("gazette_season_matches", JSON.stringify(seasonMatches));
     }
 
@@ -517,29 +539,12 @@
       const monthSelect = document.getElementById("select-mois");
       monthSelect.innerHTML = moisSaison.map(m => `<option value="${m.id}">${m.name}</option>`).join("");
 
-      // Détermine la journée courante basée sur le calendrier si non définie
-      if (!currentJournee || currentJournee === 1) {
-        currentJournee = calculateJourneeByDate();
-      }
-
       const monthObj = moisSaison.find(m => m.journees.includes(currentJournee)) || moisSaison[0];
       monthSelect.value = monthObj.id;
 
       const journeeSelect = document.getElementById("select-journee");
       journeeSelect.innerHTML = monthObj.journees.map(j => `<option value="${j}">Journée ${j}</option>`).join("");
       journeeSelect.value = currentJournee;
-    }
-
-    // Calcul automatique de la journée selon la date système
-    function calculateJourneeByDate() {
-      const today = new Date();
-      // Exemple de calendrier basique : J1 le 8 août, J2 le 14 août, etc.
-      const startDate = new Date(today.getFullYear(), 7, 8); // 8 août
-      const diffDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
-      
-      if (diffDays < 0) return 1;
-      let calculatedJ = Math.floor(diffDays / 7) + 1;
-      return Math.min(Math.max(calculatedJ, 1), 34);
     }
 
     function filterJourneesByMonth() {
@@ -555,7 +560,6 @@
 
     function changeJournee() {
       currentJournee = parseInt(document.getElementById("select-journee").value);
-      localStorage.setItem("gazette_current_j", currentJournee);
       renderMatches();
     }
 
@@ -596,9 +600,9 @@
     function resetSeasonData() {
       if (confirm("Voulez-vous réinitialiser tous les scores de la saison ?")) {
         localStorage.removeItem("gazette_season_matches");
-        localStorage.removeItem("gazette_current_j");
-        initSeason();
-        currentJournee = calculateJourneeByDate();
+        seasonMatches = createDefaultSeasonMatches();
+        localStorage.setItem("gazette_season_matches", JSON.stringify(seasonMatches));
+        currentJournee = 2;
         setupSelects();
         renderMatches();
         renderStandingsAndStats();
@@ -613,7 +617,7 @@
       });
 
       Object.keys(seasonMatches).forEach(j => {
-        seasonMatches[j].forEach(m => {
+        (seasonMatches[j] || []).forEach(m => {
           if (m.homeScore !== "" && m.awayScore !== "" && !isNaN(m.homeScore) && !isNaN(m.awayScore)) {
             let hScore = parseInt(m.homeScore);
             let aScore = parseInt(m.awayScore);
@@ -708,33 +712,25 @@
       }
     }
 
-    // Chargement initial
+    // Chargement de la page
     document.addEventListener("DOMContentLoaded", async () => {
       initSeason();
       loadArticles();
-
-      // Récupère la journée mémorisée ou calcule selon la date
-      const savedJ = localStorage.getItem("gazette_current_j");
-      if (savedJ) {
-        currentJournee = parseInt(savedJ);
-      } else {
-        currentJournee = calculateJourneeByDate();
-      }
 
       try {
         const res = await fetch(`/api/football-data?_t=${Date.now()}`);
         const data = await res.json();
 
-        if (data.success) {
+        if (data && data.success) {
           if (data.topScorers && data.topScorers.length > 0) {
             topScorers = data.topScorers;
           }
-          if (data.currentJournee && !savedJ) {
+          if (data.currentJournee) {
             currentJournee = parseInt(data.currentJournee);
           }
         }
       } catch (err) {
-        console.log("Mode local");
+        console.log("Chargement local");
       }
 
       setupSelects();
