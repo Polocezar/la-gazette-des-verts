@@ -301,6 +301,7 @@
 
   <script>
     let articlesData = [];
+    let deletedArticleIds = JSON.parse(localStorage.getItem("deletedArticleIds")) || [];
 
     let topScorers = JSON.parse(localStorage.getItem("topScorers")) || [
       { name: "Irvin Cardona", club: "ASSE", goals: 3 },
@@ -312,11 +313,13 @@
 
     window.handleGoogleNewsResponse = function(data) {
       if (data && data.status === "ok" && data.items && data.items.length > 0) {
-        articlesData = data.items.slice(0, 15).map((item, index) => {
+        articlesData = data.items.slice(0, 20).map((item) => {
           let titleParts = item.title.split(" - ");
           let sourceName = titleParts.length > 1 ? titleParts.pop() : "Presse Web";
           let cleanTitle = titleParts.join(" - ");
-          return { id: index + 1, title: cleanTitle, source: sourceName, link: item.link || item.guid };
+          let link = item.link || item.guid;
+          let id = item.guid || link || cleanTitle;
+          return { id, title: cleanTitle, source: sourceName, link };
         });
         renderArticles();
       } else {
@@ -340,30 +343,38 @@
 
     function loadFallbackNews() {
       articlesData = [
-        { id: 1, title: "ASSE 3-1 Clermont : Cardona étincelant avec 3 buts au compteur !", source: "L'Équipe", link: "https://www.lequipe.fr" },
-        { id: 2, title: "Ligue 2 : Saint-Étienne seul leader avec 6 points", source: "Evect", link: "https://www.envertetcontretous.fr" },
-        { id: 3, title: "Ligue 2 : Bilan de la 2ème journée", source: "Foot Mercato", link: "https://www.footmercato.net" }
+        { id: "fallback-1", title: "ASSE 3-1 Clermont : Cardona étincelant avec 3 buts au compteur !", source: "L'Équipe", link: "https://www.lequipe.fr" },
+        { id: "fallback-2", title: "Ligue 2 : Saint-Étienne seul leader avec 6 points", source: "Evect", link: "https://www.envertetcontretous.fr" },
+        { id: "fallback-3", title: "Ligue 2 : Bilan de la 2ème journée", source: "Foot Mercato", link: "https://www.footmercato.net" }
       ];
       renderArticles();
     }
 
     function renderArticles(list = articlesData) {
       const container = document.getElementById("news-container");
-      if (!list || list.length === 0) {
+      
+      // Filtrer les articles supprimés
+      let visibleArticles = list.filter(a => !deletedArticleIds.includes(a.id));
+
+      if (!visibleArticles || visibleArticles.length === 0) {
         container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.8rem;">Aucun article disponible.</div>`;
         return;
       }
-      container.innerHTML = list.map(a => `
+      container.innerHTML = visibleArticles.map(a => `
         <div class="news-item">
           <a href="${a.link}" target="_blank">${a.title}</a>
           <div class="news-meta">Source : ${a.source}</div>
-          <span class="news-delete" onclick="deleteArticle(${a.id})">×</span>
+          <span class="news-delete" onclick="deleteArticle('${encodeURIComponent(a.id)}')">×</span>
         </div>
       `).join("");
     }
 
-    function deleteArticle(id) {
-      articlesData = articlesData.filter(a => a.id !== id);
+    function deleteArticle(encodedId) {
+      const id = decodeURIComponent(encodedId);
+      if (!deletedArticleIds.includes(id)) {
+        deletedArticleIds.push(id);
+        localStorage.setItem("deletedArticleIds", JSON.stringify(deletedArticleIds));
+      }
       renderArticles();
     }
 
@@ -518,9 +529,11 @@
     }
 
     function resetSeasonData() {
-      if (confirm("Voulez-vous réinitialiser tout le championnat ?")) {
+      if (confirm("Voulez-vous réinitialiser tout le championnat et restaurer les articles supprimés ?")) {
         localStorage.removeItem("seasonMatches");
         localStorage.removeItem("topScorers");
+        localStorage.removeItem("deletedArticleIds");
+        deletedArticleIds = [];
         seasonMatches = createOfficialMatches();
         topScorers = [
           { name: "Irvin Cardona", club: "ASSE", goals: 3 },
@@ -533,6 +546,7 @@
         setupSelects();
         renderMatches();
         renderStandingsAndStats();
+        loadArticles();
       }
     }
 
