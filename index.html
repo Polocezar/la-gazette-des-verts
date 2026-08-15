@@ -3,178 +3,106 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LA GAZETTE DES VERTS</title>
+  <title>La Gazette des Verts</title>
   <style>
     :root {
-      --bg-dark: #0a110b;
-      --panel-bg: rgba(14, 26, 17, 0.85);
-      --border-green: #1b4d24;
-      --accent-green: #00ff41;
-      --text-light: #e0f2e1;
-      --text-muted: #83b088;
-      --btn-green: #10802b;
-      --btn-danger: #c0392b;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --accent-green: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
     }
 
     body {
-      background-color: var(--bg-dark);
-      color: var(--text-light);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
       padding: 20px;
-      min-height: 100vh;
     }
 
-    header {
-      text-align: center;
-      margin-bottom: 25px;
-      border-bottom: 1px solid var(--border-green);
-      padding-bottom: 15px;
-    }
-
-    header h1 {
-      color: var(--accent-green);
-      font-size: 2.2rem;
-      letter-spacing: 2px;
-      text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
-    }
-
-    header p {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      margin-top: 5px;
-    }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: 320px 1fr 340px;
-      gap: 20px;
-      max-width: 1600px;
+    .container {
+      max-width: 1200px;
       margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
     }
 
-    @media (max-width: 1200px) {
-      .dashboard-grid {
-        grid-template-columns: 1fr;
+    @media (min-width: 900px) {
+      .container {
+        grid-template-columns: 1fr 1fr;
+      }
+      .full-width {
+        grid-column: span 2;
       }
     }
 
-    .panel {
-      background: var(--panel-bg);
-      border: 1px solid var(--border-green);
-      border-radius: 8px;
-      padding: 15px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
     }
 
-    .panel-title {
-      color: var(--accent-green);
-      font-size: 1rem;
-      font-weight: bold;
-      border-bottom: 1px solid var(--border-green);
-      padding-bottom: 8px;
-      margin-bottom: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    /* Column Left: News */
-    .news-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-height: 75vh;
-      overflow-y: auto;
-    }
-
-    .news-item {
-      background: rgba(0, 0, 0, 0.3);
-      border-left: 3px solid var(--accent-green);
-      padding: 10px;
-      border-radius: 4px;
-      position: relative;
-    }
-
-    .news-title {
-      font-size: 0.85rem;
-      color: #fff;
-      text-decoration: none;
-      display: block;
-      margin-bottom: 5px;
-      line-height: 1.3;
-    }
-
-    .news-title:hover {
+    h1, h2, h3 {
+      margin-top: 0;
       color: var(--accent-green);
     }
 
-    .news-source {
-      font-size: 0.7rem;
-      color: var(--text-muted);
+    .header {
+      text-align: center;
+      padding: 20px 0;
     }
 
-    .news-delete {
-      position: absolute;
-      top: 5px;
-      right: 8px;
-      color: var(--btn-danger);
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    /* Column Center: Matches */
     .select-group {
       display: flex;
-      gap: 15px;
-      margin-bottom: 15px;
+      gap: 10px;
+      margin-bottom: 20px;
     }
 
-    .select-container {
+    select, input, button {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    select {
       flex: 1;
     }
 
-    .select-container label {
-      display: block;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-bottom: 5px;
+    button {
+      background-color: var(--accent-green);
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
     }
 
-    select, input[type="text"] {
-      width: 100%;
-      padding: 8px;
-      background: #050a06;
-      border: 1px solid var(--border-green);
-      color: var(--text-light);
-      border-radius: 4px;
-      outline: none;
+    button:hover {
+      opacity: 0.9;
     }
 
-    .match-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 20px;
+    .btn-danger {
+      background-color: #ef4444;
+      color: #fff;
     }
 
     .match-row {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 8px 12px;
-      border-radius: 4px;
-      font-size: 0.85rem;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-color);
     }
 
     .team-name {
       flex: 1;
+      font-size: 0.95rem;
     }
 
     .team-home { text-align: right; }
@@ -183,166 +111,159 @@
     .score-inputs {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 8px;
       margin: 0 15px;
     }
 
     .score-input {
-      width: 35px;
-      height: 30px;
+      width: 45px;
       text-align: center;
-      background: #000;
-      border: 1px solid var(--border-green);
-      color: var(--accent-green);
-      font-weight: bold;
-      border-radius: 4px;
     }
 
-    .btn {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 4px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    .btn-save { background: var(--btn-green); color: white; }
-    .btn-reset { background: var(--btn-danger); color: white; }
-
-    /* Column Right: Standings & Scorers */
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.8rem;
       margin-top: 10px;
+      font-size: 0.9rem;
     }
 
     th, td {
-      padding: 6px 4px;
+      padding: 8px;
       text-align: center;
-      border-bottom: 1px solid rgba(27, 77, 36, 0.4);
+      border-bottom: 1px solid var(--border-color);
     }
 
     th {
       color: var(--text-muted);
-      font-weight: normal;
+      font-weight: 600;
     }
 
     .col-club { text-align: left; }
-
+    
     .highlight-asse {
-      background: rgba(0, 255, 65, 0.15);
-      color: var(--accent-green);
+      background-color: rgba(16, 185, 129, 0.15);
       font-weight: bold;
     }
 
-    .stats-box {
-      margin-bottom: 15px;
-      font-size: 0.8rem;
-    }
-
-    .stats-row {
+    .news-item {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-color);
       display: flex;
       justify-content: space-between;
-      margin-bottom: 5px;
+      align-items: center;
     }
 
-    .add-btn-small {
-      background: none;
-      border: none;
+    .news-title {
+      color: var(--text-main);
+      text-decoration: none;
+    }
+
+    .news-title:hover {
       color: var(--accent-green);
-      cursor: pointer;
+    }
+
+    .news-source {
       font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .news-delete {
+      color: #ef4444;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    .stats-box {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 15px;
+      padding: 10px;
+      background: var(--bg-color);
+      border-radius: 8px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .stat-value {
+      font-size: 1rem;
+      font-weight: bold;
+      color: var(--accent-green);
     }
   </style>
 </head>
 <body>
 
-  <header>
+  <div class="header">
     <h1>LA GAZETTE DES VERTS</h1>
-    <p>ACTUALITÉS & SAISON EN DIRECT</p>
-  </header>
+    <p style="color: var(--text-muted);">Suivi en direct de la saison de l'AS Saint-Étienne</p>
+  </div>
 
-  <div class="dashboard-grid">
+  <div class="container">
 
-    <!-- Colonne Gauche : Actualités -->
-    <div class="panel">
-      <div class="panel-title">
-        <span>ACTUALITÉS DE L'ASSE</span>
-        <button class="add-btn-small" onclick="loadArticles()">🔄</button>
-      </div>
-      <input type="text" id="search-news" placeholder="Rechercher un article..." onkeyup="filterArticles()" style="margin-bottom: 12px;">
-      <div class="news-list" id="news-container">
-        <!-- Articles chargés dynamiquement -->
+    <!-- Actualités RSS -->
+    <div class="card full-width">
+      <h2>Dernières Actualités ASSE</h2>
+      <input type="text" id="search-news" placeholder="Filtrer les actualités..." onkeyup="filterArticles()" style="width: 100%; box-sizing: border-box; margin-bottom: 10px;">
+      <div id="news-container">
+        <div style="color: var(--text-muted); font-size: 0.85rem;">Chargement des actus...</div>
       </div>
     </div>
 
-    <!-- Colonne Centre : Calendrier et Matchs -->
-    <div class="panel">
-      <div class="panel-title">CALENDRIER DES MATCHS (LIGUE 2 BKT)</div>
-      
+    <!-- Saisie des Résultats -->
+    <div class="card">
+      <h2 id="form-title">Saisie des Matchs</h2>
       <div class="select-group">
-        <div class="select-container">
-          <label>CHOISIR UN MOIS</label>
-          <select id="select-mois" onchange="filterJourneesByMonth()"></select>
-        </div>
-        <div class="select-container">
-          <label>CHOISIR UNE JOURNÉE</label>
-          <select id="select-journee" onchange="changeJournee()"></select>
-        </div>
+        <select id="select-mois" onchange="filterJourneesByMonth()"></select>
+        <select id="select-journee" onchange="changeJournee()"></select>
       </div>
-
-      <div style="font-size: 0.8rem; color: var(--accent-green); margin-bottom: 10px; font-weight: bold;" id="form-title">
-        SAISIR LES RÉSULTATS
+      <div id="match-list-container"></div>
+      <div style="margin-top: 15px; display: flex; gap: 10px;">
+        <button onclick="saveCurrentJourneeScores()" style="flex: 1;">Enregistrer la journée</button>
       </div>
-
-      <div class="match-list" id="match-list-container">
-        <!-- Matchs chargés dynamiquement -->
-      </div>
-
-      <button class="btn btn-save" onclick="saveCurrentJourneeScores()">💾 ENREGISTRER LA JOURNÉE</button>
-      <button class="btn btn-reset" onclick="resetSeasonData()">🗑️ RÉINITIALISER LE CHAMPIONNAT</button>
     </div>
 
-    <!-- Colonne Droite : Statistiques et Classement -->
-    <div class="panel">
-      <div class="panel-title">STATISTIQUES DE LA SAISON</div>
-      <div class="stats-box">
-        <div class="stats-row">
-          <span style="color: var(--text-muted);">🔥 Meilleure Attaque :</span>
-          <span id="best-attack">-</span>
-        </div>
-        <div class="stats-row">
-          <span style="color: var(--text-muted);">🛡️ Pire Défense :</span>
-          <span id="worst-defense">-</span>
-        </div>
-      </div>
-
-      <div class="panel-title">
-        <span>⚽ TOP 5 BUTEURS</span>
-        <button class="add-btn-small" onclick="addManualScorer()">+ Ajouter</button>
-      </div>
+    <!-- Buteurs & Stats -->
+    <div class="card">
+      <h2>Meilleurs Buteurs</h2>
       <table>
         <thead>
           <tr>
-            <th>PL.</th>
-            <th class="col-club">JOUEUR</th>
-            <th>CLUB</th>
-            <th style="text-align: right;">BUTS</th>
+            <th>#</th>
+            <th class="col-club">Joueur</th>
+            <th>Club</th>
+            <th style="text-align: right;">Buts</th>
           </tr>
         </thead>
-        <tbody id="top-scorers-body">
-          <!-- Buteurs chargés dynamiquement -->
-        </tbody>
+        <tbody id="top-scorers-body"></tbody>
       </table>
+      <button onclick="addManualScorer()" style="margin-top: 15px; width: 100%;">+ Ajouter un buteur</button>
 
-      <div class="panel-title" style="margin-top: 20px;">CLASSEMENT LIGUE 2 BKT</div>
+      <div class="stats-box">
+        <div class="stat-item">
+          <div class="stat-label">Meilleure Attaque</div>
+          <div class="stat-value" id="best-attack">-</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Moins Bonne Défense</div>
+          <div class="stat-value" id="worst-defense">-</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Classement Général -->
+    <div class="card full-width">
+      <h2>Classement Général Ligue 2</h2>
       <table>
         <thead>
           <tr>
-            <th class="col-club">CLUB</th>
+            <th class="col-club">Club</th>
             <th>MJ</th>
             <th>G</th>
             <th>N</th>
@@ -353,10 +274,11 @@
             <th>PTS</th>
           </tr>
         </thead>
-        <tbody id="standings-body">
-          <!-- Classement chargé dynamiquement -->
-        </tbody>
+        <tbody id="standings-body"></tbody>
       </table>
+      <div style="margin-top: 20px; text-align: center;">
+        <button class="btn-danger" onclick="resetSeasonData()">🗑️ RÉINITIALISER LE CHAMPIONNAT</button>
+      </div>
     </div>
 
   </div>
@@ -364,7 +286,7 @@
   <script>
     let articlesData = [];
 
-    // RSS News Loader
+    // RSS Loader
     window.handleGoogleNewsResponse = function(data) {
       if (data && data.status === "ok" && data.items && data.items.length > 0) {
         articlesData = data.items.slice(0, 15).map((item, index) => {
@@ -465,13 +387,15 @@
     let currentJournee = 2;
     let seasonMatches = {};
 
-    let topScorers = [
+    let defaultScorers = [
       { name: "Irvin Cardona", club: "ASSE", goals: 2 },
       { name: "Egor Prutsev", club: "Dunkerque", goals: 2 },
       { name: "Yadaly Diaby", club: "Grenoble", goals: 2 },
       { name: "Jakob Breum", club: "ASSE", goals: 1 },
       { name: "Thierno Ballo", club: "ASSE", goals: 1 }
     ];
+
+    let topScorers = [...defaultScorers];
 
     function createDefaultSeasonMatches() {
       let matches = {};
@@ -527,12 +451,24 @@
           const parsed = JSON.parse(savedMatches);
           if (parsed && Object.keys(parsed).length > 0) {
             seasonMatches = parsed;
-            return;
+          } else {
+            seasonMatches = createDefaultSeasonMatches();
           }
-        } catch(e) {}
+        } catch(e) {
+          seasonMatches = createDefaultSeasonMatches();
+        }
+      } else {
+        seasonMatches = createDefaultSeasonMatches();
       }
-      seasonMatches = createDefaultSeasonMatches();
-      localStorage.setItem("gazette_season_matches", JSON.stringify(seasonMatches));
+
+      const savedScorers = localStorage.getItem("gazette_top_scorers");
+      if (savedScorers) {
+        try {
+          topScorers = JSON.parse(savedScorers);
+        } catch(e) {
+          topScorers = [...defaultScorers];
+        }
+      }
     }
 
     function setupSelects() {
@@ -603,19 +539,118 @@
         localStorage.removeItem("gazette_top_scorers");
         
         seasonMatches = createDefaultSeasonMatches();
-        localStorage.setItem("gazette_season_matches", JSON.stringify(seasonMatches));
+        topScorers = [...defaultScorers];
         
-        topScorers = [
-          { name: "Irvin Cardona", club: "ASSE", goals: 2 },
-          { name: "Egor Prutsev", club: "Dunkerque", goals: 2 },
-          { name: "Yadaly Diaby", club: "Grenoble", goals: 2 },
-          { name: "Jakob Breum", club: "ASSE", goals: 1 },
-          { name: "Thierno Ballo", club: "ASSE", goals: 1 }
-        ];
+        localStorage.setItem("gazette_season_matches", JSON.stringify(seasonMatches));
+        localStorage.setItem("gazette_top_scorers", JSON.stringify(topScorers));
 
         currentJournee = 2;
         setupSelects();
         renderMatches();
+        renderStandingsAndStats();
+      }
+    }
+
+    function calculateStandings() {
+      let teams = {};
+
+      clubs.forEach(t => {
+        teams[t] = { name: t, mj: 0, g: 0, n: 0, p: 0, bp: 0, bc: 0, db: 0, pts: 0 };
+      });
+
+      Object.keys(seasonMatches).forEach(j => {
+        (seasonMatches[j] || []).forEach(m => {
+          if (m.homeScore !== "" && m.awayScore !== "" && !isNaN(m.homeScore) && !isNaN(m.awayScore)) {
+            let hScore = parseInt(m.homeScore);
+            let aScore = parseInt(m.awayScore);
+
+            let h = teams[m.home];
+            let a = teams[m.away];
+
+            if (h && a) {
+              h.mj++; a.mj++;
+              h.bp += hScore; h.bc += aScore;
+              a.bp += aScore; a.bc += hScore;
+
+              if (hScore > aScore) {
+                h.g++; h.pts += 3;
+                a.p++;
+              } else if (hScore < aScore) {
+                a.g++; a.pts += 3;
+                h.p++;
+              } else {
+                h.n++; h.pts += 1;
+                a.n++; a.pts += 1;
+              }
+
+              h.db = h.bp - h.bc;
+              a.db = a.bp - a.bc;
+            }
+          }
+        });
+      });
+
+      return Object.values(teams).sort((a, b) => {
+        if (b.pts !== a.pts) return b.pts - a.pts;
+        if (b.db !== a.db) return b.db - a.db;
+        return b.bp - a.bp;
+      });
+    }
+
+    function renderStandingsAndStats() {
+      const standings = calculateStandings();
+      const standingsBody = document.getElementById("standings-body");
+
+      standingsBody.innerHTML = standings.map((t, index) => `
+        <tr class="${t.name.includes("Saint-Étienne") ? 'highlight-asse' : ''}">
+          <td class="col-club">${index + 1}. ${t.name}</td>
+          <td>${t.mj}</td>
+          <td>${t.g}</td>
+          <td>${t.n}</td>
+          <td>${t.p}</td>
+          <td>${t.bp}</td>
+          <td>${t.bc}</td>
+          <td>${t.db > 0 ? '+' + t.db : t.db}</td>
+          <td><strong>${t.pts}</strong></td>
+        </tr>
+      `).join("");
+
+      let maxBP = -1, bestAttack = "-";
+      let maxBC = -1, worstDefense = "-";
+
+      standings.forEach(t => {
+        if (t.mj > 0) {
+          if (t.bp > maxBP) { maxBP = t.bp; bestAttack = `${t.name} (${t.bp})`; }
+          if (t.bc > maxBC) { maxBC = t.bc; worstDefense = `${t.name} (${t.bc})`; }
+        }
+      });
+
+      document.getElementById("best-attack").textContent = bestAttack;
+      document.getElementById("worst-defense").textContent = worstDefense;
+
+      topScorers.sort((a, b) => b.goals - a.goals);
+
+      const scorersBody = document.getElementById("top-scorers-body");
+      if (scorersBody) {
+        scorersBody.innerHTML = topScorers.slice(0, 5).map((s, idx) => `
+          <tr class="${s.club === "ASSE" ? 'highlight-asse' : ''}">
+            <td><strong>${idx + 1}</strong></td>
+            <td>${s.name}</td>
+            <td style="color: var(--text-muted);">${s.club}</td>
+            <td style="text-align: right; font-weight: bold;">${s.goals}</td>
+          </tr>
+        `).join("");
+      }
+    }
+
+    function addManualScorer() {
+      const name = prompt("Nom du joueur :");
+      const club = prompt("Club (ex: ASSE) :");
+      const goals = parseInt(prompt("Nombre de buts :") || "0");
+
+      if (name && club) {
+        topScorers.push({ name, club, goals });
+        localStorage.setItem("gazette_top_scorers", JSON.stringify(topScorers));
         renderStandingsAndStats();
       }
     }
@@ -631,14 +666,15 @@
 
         if (data && data.success) {
           if (data.topScorers && data.topScorers.length > 0) {
-            // Mise à jour forcée des buteurs
             topScorers = data.topScorers;
+            localStorage.setItem("gazette_top_scorers", JSON.stringify(topScorers));
           }
           if (data.currentJournee) {
             currentJournee = parseInt(data.currentJournee);
           }
           if (data.journeeMatches && data.journeeMatches.length > 0) {
             seasonMatches[currentJournee] = data.journeeMatches;
+            localStorage.setItem("gazette_season_matches", JSON.stringify(seasonMatches));
           }
         }
       } catch (err) {
