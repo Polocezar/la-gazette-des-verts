@@ -239,7 +239,7 @@
         </div>
       </div>
 
-      <div class="subtitle-green" id="form-title">SAISIR LES RÉSULTATS DE LA JOURNÉE 2</div>
+      <div class="subtitle-green" id="form-title">SAISIR LES RÉSULTATS</div>
       
       <div id="match-list-container"></div>
 
@@ -253,11 +253,11 @@
 
       <div class="stat-row">
         <span>🔥 Meilleure Attaque :</span>
-        <span class="stat-val" id="best-attack">AS Saint-Étienne (6)</span>
+        <span class="stat-val" id="best-attack">-</span>
       </div>
       <div class="stat-row" style="margin-bottom: 20px;">
         <span>🎈 Pire Défense :</span>
-        <span class="stat-val" id="worst-defense">Dunkerque / Grenoble (5)</span>
+        <span class="stat-val" id="worst-defense">-</span>
       </div>
 
       <div class="card-title" style="margin-bottom: 5px;">
@@ -302,8 +302,7 @@
   <script>
     let articlesData = [];
 
-    // Classement officiel des Buteurs de Ligue 2 BKT (Saison 2026-2027)
-    let topScorers = [
+    let topScorers = JSON.parse(localStorage.getItem("topScorers")) || [
       { name: "Irvin Cardona", club: "ASSE", goals: 3 },
       { name: "Egor Prutsev", club: "Dunkerque", goals: 2 },
       { name: "Yadaly Diaby", club: "Grenoble", goals: 2 },
@@ -376,8 +375,15 @@
 
     const moisSaison = [
       { id: "08", name: "Août", journees: [1, 2, 3, 4] },
-      { id: "09", name: "Septembre", journees: [5, 6, 7] },
-      { id: "10", name: "Octobre", journees: [8, 9, 10, 11] }
+      { id: "09", name: "Septembre", journees: [5, 6, 7, 8] },
+      { id: "10", name: "Octobre", journees: [9, 10, 11, 12] },
+      { id: "11", name: "Novembre", journees: [13, 14, 15] },
+      { id: "12", name: "Décembre", journees: [16, 17, 18] },
+      { id: "01", name: "Janvier", journees: [19, 20, 21] },
+      { id: "02", name: "Février", journees: [22, 23, 24, 25] },
+      { id: "03", name: "Mars", journees: [26, 27, 28] },
+      { id: "04", name: "Avril", journees: [29, 30, 31] },
+      { id: "05", name: "Mai", journees: [32, 33, 34] }
     ];
 
     const clubs = [
@@ -388,7 +394,26 @@
     ];
 
     let currentJournee = 2;
-    let seasonMatches = {};
+    let seasonMatches = JSON.parse(localStorage.getItem("seasonMatches")) || {};
+
+    function generateDefaultJournee(j) {
+      let offset = (j - 1) % (clubs.length - 1);
+      let list = [];
+      let tempClubs = [...clubs];
+      
+      for (let i = 0; i < tempClubs.length / 2; i++) {
+        let homeIdx = (i + offset) % tempClubs.length;
+        let awayIdx = (tempClubs.length - 1 - i + offset) % tempClubs.length;
+        if (homeIdx === awayIdx) awayIdx = (awayIdx + 1) % tempClubs.length;
+        list.push({
+          home: tempClubs[homeIdx],
+          homeScore: "",
+          awayScore: "",
+          away: tempClubs[awayIdx]
+        });
+      }
+      return list;
+    }
 
     function createOfficialMatches() {
       return {
@@ -418,35 +443,49 @@
     }
 
     function initSeason() {
-      seasonMatches = createOfficialMatches();
+      if (!seasonMatches[1] || !seasonMatches[2]) {
+        seasonMatches = createOfficialMatches();
+      }
     }
 
     function setupSelects() {
       const mSel = document.getElementById("select-mois");
       mSel.innerHTML = moisSaison.map(m => `<option value="${m.id}">${m.name}</option>`).join("");
+      
+      let currentMonthObj = moisSaison.find(m => m.journees.includes(currentJournee)) || moisSaison[0];
+      mSel.value = currentMonthObj.id;
+      
+      updateJourneeSelectOptions(currentMonthObj);
+      document.getElementById("select-journee").value = currentJournee;
+    }
+
+    function updateJourneeSelectOptions(monthObj) {
       const jSel = document.getElementById("select-journee");
-      jSel.innerHTML = moisSaison[0].journees.map(j => `<option value="${j}">Journée ${j}</option>`).join("");
-      jSel.value = currentJournee;
+      jSel.innerHTML = monthObj.journees.map(j => `<option value="${j}">Journée ${j}</option>`).join("");
     }
 
     function filterJourneesByMonth() {
       const mId = document.getElementById("select-mois").value;
       const mObj = moisSaison.find(m => m.id === mId) || moisSaison[0];
-      const jSel = document.getElementById("select-journee");
-      jSel.innerHTML = mObj.journees.map(j => `<option value="${j}">Journée ${j}</option>`).join("");
+      updateJourneeSelectOptions(mObj);
       currentJournee = mObj.journees[0];
       renderMatches();
     }
 
     function changeJournee() {
-      currentJournee = parseInt(document.getElementById("select-journee").value);
+      currentJournee = parseInt(document.getElementById("select-journee").value, 10);
       renderMatches();
     }
 
     function renderMatches() {
       document.getElementById("form-title").textContent = `SAISIR LES RÉSULTATS DE LA JOURNÉE ${currentJournee}`;
+      
+      if (!seasonMatches[currentJournee] || seasonMatches[currentJournee].length === 0) {
+        seasonMatches[currentJournee] = generateDefaultJournee(currentJournee);
+      }
+
       const container = document.getElementById("match-list-container");
-      const matches = seasonMatches[currentJournee] || [];
+      const matches = seasonMatches[currentJournee];
 
       container.innerHTML = matches.map((m, idx) => `
         <div class="match-row">
@@ -469,19 +508,32 @@
         m.homeScore = (hVal !== undefined && hVal !== "") ? parseInt(hVal, 10) : "";
         m.awayScore = (aVal !== undefined && aVal !== "") ? parseInt(aVal, 10) : "";
       });
+      localStorage.setItem("seasonMatches", JSON.stringify(seasonMatches));
       renderStandingsAndStats();
     }
 
     function saveCurrentJourneeScores(showAlert = false) {
       updateScoresFromInput();
-      if (showAlert) alert("Journée enregistrée !");
+      if (showAlert) alert(`Journée ${currentJournee} enregistrée avec succès !`);
     }
 
     function resetSeasonData() {
-      initSeason();
-      setupSelects();
-      renderMatches();
-      renderStandingsAndStats();
+      if (confirm("Voulez-vous réinitialiser tout le championnat ?")) {
+        localStorage.removeItem("seasonMatches");
+        localStorage.removeItem("topScorers");
+        seasonMatches = createOfficialMatches();
+        topScorers = [
+          { name: "Irvin Cardona", club: "ASSE", goals: 3 },
+          { name: "Egor Prutsev", club: "Dunkerque", goals: 2 },
+          { name: "Yadaly Diaby", club: "Grenoble", goals: 2 },
+          { name: "Yaya Kader Fofana", club: "Metz", goals: 2 },
+          { name: "Jakob Breum", club: "ASSE", goals: 1 }
+        ];
+        currentJournee = 2;
+        setupSelects();
+        renderMatches();
+        renderStandingsAndStats();
+      }
     }
 
     function renderStandingsAndStats() {
@@ -541,6 +593,7 @@
       const goals = parseInt(prompt("Nombre de buts :") || "0", 10);
       if (name && club) {
         topScorers.push({ name, club, goals });
+        localStorage.setItem("topScorers", JSON.stringify(topScorers));
         renderStandingsAndStats();
       }
     }
