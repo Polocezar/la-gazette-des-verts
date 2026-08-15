@@ -516,13 +516,30 @@
     function setupSelects() {
       const monthSelect = document.getElementById("select-mois");
       monthSelect.innerHTML = moisSaison.map(m => `<option value="${m.id}">${m.name}</option>`).join("");
-      
+
+      // Détermine la journée courante basée sur le calendrier si non définie
+      if (!currentJournee || currentJournee === 1) {
+        currentJournee = calculateJourneeByDate();
+      }
+
       const monthObj = moisSaison.find(m => m.journees.includes(currentJournee)) || moisSaison[0];
       monthSelect.value = monthObj.id;
 
       const journeeSelect = document.getElementById("select-journee");
       journeeSelect.innerHTML = monthObj.journees.map(j => `<option value="${j}">Journée ${j}</option>`).join("");
       journeeSelect.value = currentJournee;
+    }
+
+    // Calcul automatique de la journée selon la date système
+    function calculateJourneeByDate() {
+      const today = new Date();
+      // Exemple de calendrier basique : J1 le 8 août, J2 le 14 août, etc.
+      const startDate = new Date(today.getFullYear(), 7, 8); // 8 août
+      const diffDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+      
+      if (diffDays < 0) return 1;
+      let calculatedJ = Math.floor(diffDays / 7) + 1;
+      return Math.min(Math.max(calculatedJ, 1), 34);
     }
 
     function filterJourneesByMonth() {
@@ -538,6 +555,7 @@
 
     function changeJournee() {
       currentJournee = parseInt(document.getElementById("select-journee").value);
+      localStorage.setItem("gazette_current_j", currentJournee);
       renderMatches();
     }
 
@@ -578,7 +596,10 @@
     function resetSeasonData() {
       if (confirm("Voulez-vous réinitialiser tous les scores de la saison ?")) {
         localStorage.removeItem("gazette_season_matches");
+        localStorage.removeItem("gazette_current_j");
         initSeason();
+        currentJournee = calculateJourneeByDate();
+        setupSelects();
         renderMatches();
         renderStandingsAndStats();
       }
@@ -687,10 +708,18 @@
       }
     }
 
-    // Synchronisation au chargement
+    // Chargement initial
     document.addEventListener("DOMContentLoaded", async () => {
       initSeason();
       loadArticles();
+
+      // Récupère la journée mémorisée ou calcule selon la date
+      const savedJ = localStorage.getItem("gazette_current_j");
+      if (savedJ) {
+        currentJournee = parseInt(savedJ);
+      } else {
+        currentJournee = calculateJourneeByDate();
+      }
 
       try {
         const res = await fetch(`/api/football-data?_t=${Date.now()}`);
@@ -700,7 +729,7 @@
           if (data.topScorers && data.topScorers.length > 0) {
             topScorers = data.topScorers;
           }
-          if (data.currentJournee) {
+          if (data.currentJournee && !savedJ) {
             currentJournee = parseInt(data.currentJournee);
           }
         }
