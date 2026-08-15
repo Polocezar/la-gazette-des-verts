@@ -598,116 +598,24 @@
     }
 
     function resetSeasonData() {
-      if (confirm("Voulez-vous réinitialiser tous les scores de la saison ?")) {
+      if (confirm("Voulez-vous réinitialiser tous les scores et buteurs de la saison ?")) {
         localStorage.removeItem("gazette_season_matches");
+        localStorage.removeItem("gazette_top_scorers");
+        
         seasonMatches = createDefaultSeasonMatches();
         localStorage.setItem("gazette_season_matches", JSON.stringify(seasonMatches));
+        
+        topScorers = [
+          { name: "Irvin Cardona", club: "ASSE", goals: 2 },
+          { name: "Egor Prutsev", club: "Dunkerque", goals: 2 },
+          { name: "Yadaly Diaby", club: "Grenoble", goals: 2 },
+          { name: "Jakob Breum", club: "ASSE", goals: 1 },
+          { name: "Thierno Ballo", club: "ASSE", goals: 1 }
+        ];
+
         currentJournee = 2;
         setupSelects();
         renderMatches();
-        renderStandingsAndStats();
-      }
-    }
-
-    function calculateStandings() {
-      let teams = {};
-
-      clubs.forEach(t => {
-        teams[t] = { name: t, mj: 0, g: 0, n: 0, p: 0, bp: 0, bc: 0, db: 0, pts: 0 };
-      });
-
-      Object.keys(seasonMatches).forEach(j => {
-        (seasonMatches[j] || []).forEach(m => {
-          if (m.homeScore !== "" && m.awayScore !== "" && !isNaN(m.homeScore) && !isNaN(m.awayScore)) {
-            let hScore = parseInt(m.homeScore);
-            let aScore = parseInt(m.awayScore);
-
-            let h = teams[m.home];
-            let a = teams[m.away];
-
-            if (h && a) {
-              h.mj++; a.mj++;
-              h.bp += hScore; h.bc += aScore;
-              a.bp += aScore; a.bc += hScore;
-
-              if (hScore > aScore) {
-                h.g++; h.pts += 3;
-                a.p++;
-              } else if (hScore < aScore) {
-                a.g++; a.pts += 3;
-                h.p++;
-              } else {
-                h.n++; h.pts += 1;
-                a.n++; a.pts += 1;
-              }
-
-              h.db = h.bp - h.bc;
-              a.db = a.bp - a.bc;
-            }
-          }
-        });
-      });
-
-      return Object.values(teams).sort((a, b) => {
-        if (b.pts !== a.pts) return b.pts - a.pts;
-        if (b.db !== a.db) return b.db - a.db;
-        return b.bp - a.bp;
-      });
-    }
-
-    function renderStandingsAndStats() {
-      const standings = calculateStandings();
-      const standingsBody = document.getElementById("standings-body");
-
-      standingsBody.innerHTML = standings.map((t, index) => `
-        <tr class="${t.name.includes("Saint-Étienne") ? 'highlight-asse' : ''}">
-          <td class="col-club">${index + 1}. ${t.name}</td>
-          <td>${t.mj}</td>
-          <td>${t.g}</td>
-          <td>${t.n}</td>
-          <td>${t.p}</td>
-          <td>${t.bp}</td>
-          <td>${t.bc}</td>
-          <td>${t.db > 0 ? '+' + t.db : t.db}</td>
-          <td><strong>${t.pts}</strong></td>
-        </tr>
-      `).join("");
-
-      let maxBP = -1, bestAttack = "-";
-      let maxBC = -1, worstDefense = "-";
-
-      standings.forEach(t => {
-        if (t.mj > 0) {
-          if (t.bp > maxBP) { maxBP = t.bp; bestAttack = `${t.name} (${t.bp})`; }
-          if (t.bc > maxBC) { maxBC = t.bc; worstDefense = `${t.name} (${t.bc})`; }
-        }
-      });
-
-      document.getElementById("best-attack").textContent = bestAttack;
-      document.getElementById("worst-defense").textContent = worstDefense;
-
-      topScorers.sort((a, b) => b.goals - a.goals);
-
-      const scorersBody = document.getElementById("top-scorers-body");
-      if (scorersBody) {
-        scorersBody.innerHTML = topScorers.slice(0, 5).map((s, idx) => `
-          <tr class="${s.club === "ASSE" ? 'highlight-asse' : ''}">
-            <td><strong>${idx + 1}</strong></td>
-            <td>${s.name}</td>
-            <td style="color: var(--text-muted);">${s.club}</td>
-            <td style="text-align: right; font-weight: bold;">${s.goals}</td>
-          </tr>
-        `).join("");
-      }
-    }
-
-    function addManualScorer() {
-      const name = prompt("Nom du joueur :");
-      const club = prompt("Club (ex: ASSE) :");
-      const goals = parseInt(prompt("Nombre de buts :") || "0");
-
-      if (name && club) {
-        topScorers.push({ name, club, goals });
         renderStandingsAndStats();
       }
     }
@@ -723,6 +631,7 @@
 
         if (data && data.success) {
           if (data.topScorers && data.topScorers.length > 0) {
+            // Mise à jour forcée des buteurs
             topScorers = data.topScorers;
           }
           if (data.currentJournee) {
