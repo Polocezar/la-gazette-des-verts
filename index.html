@@ -469,8 +469,8 @@
       { name: "Irvin Cardona", club: "ASSE", goals: 2 },
       { name: "Egor Prutsev", club: "Dunkerque", goals: 2 },
       { name: "Yadaly Diaby", club: "Grenoble", goals: 2 },
-      { name: "Cabral", club: "Red Star", goals: 1 },
-      { name: "Gauthier Hein", club: "Metz", goals: 1 }
+      { name: "Jakob Breum", club: "ASSE", goals: 1 },
+      { name: "Thierno Ballo", club: "ASSE", goals: 1 }
     ];
 
     function createDefaultSeasonMatches() {
@@ -507,7 +507,7 @@
       // Journée 2
       matches[2] = [
         { home: "FC Annecy", homeScore: 1, awayScore: 1, away: "FC Sochaux-Montbéliard" },
-        { home: "AS Saint-Étienne", homeScore: 2, awayScore: 0, away: "Clermont Foot 63" },
+        { home: "AS Saint-Étienne", homeScore: 3, awayScore: 1, away: "Clermont Foot 63" },
         { home: "Pau FC", homeScore: 0, awayScore: 2, away: "Stade de Reims" },
         { home: "US Boulogne", homeScore: 1, awayScore: 1, away: "Dijon FCO" },
         { home: "AS Nancy-Lorraine", homeScore: 1, awayScore: 2, away: "Montpellier HSC" },
@@ -728,9 +728,12 @@
           if (data.currentJournee) {
             currentJournee = parseInt(data.currentJournee);
           }
+          if (data.journeeMatches && data.journeeMatches.length > 0) {
+            seasonMatches[currentJournee] = data.journeeMatches;
+          }
         }
       } catch (err) {
-        console.log("Chargement local");
+        console.log("Mode local");
       }
 
       setupSelects();
