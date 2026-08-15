@@ -804,48 +804,52 @@
     }
   }
 
- document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    // 1. Initialisation de la structure de base
     loadArticles();
     initSeason();
     setupSelects();
 
     try {
+      // 2. Appel de l'API sans cache
       const res = await fetch(`/api/football-data?_t=${Date.now()}`);
       const data = await res.json();
 
       if (data.success) {
-        // 1. Mise à jour des buteurs
+        // Mise à jour des buteurs
         if (data.topScorers && data.topScorers.length > 0) {
           topScorers = data.topScorers;
         }
 
-        // 2. Bascule dynamique sur la journée reçue de l'API (ex: Journée 2)
+        // Passage à la journée courante
         if (data.currentJournee) {
           currentJournee = parseInt(data.currentJournee);
 
-          // Trouve le mois correspondant à cette journée
           const monthObj = moisSaison.find(m => m.journees.includes(currentJournee));
           if (monthObj) {
             const selectMois = document.getElementById("select-mois");
             if (selectMois) selectMois.value = monthObj.id;
 
-            // Remplir le sélecteur avec les journées du mois
             const journeeSelect = document.getElementById("select-journee");
             if (journeeSelect) {
               journeeSelect.innerHTML = monthObj.journees.map(j => `<option value="${j}">Journée ${j}</option>`).join("");
-              // Sélectionner la journée désirée (Journée 2) SANS repasser par filterJourneesByMonth
               journeeSelect.value = currentJournee;
             }
           }
-          
-          // Recharger l'affichage des matchs pour cette journée
-          renderMatches();
         }
       }
     } catch (err) {
       console.log("Erreur de synchronisation API", err);
     }
 
+    // 3. Charger les résultats sauvegardés en mémoire locale s'ils existent
+    const savedMatches = localStorage.getItem("gazette_season_matches");
+    if (savedMatches) {
+      seasonMatches = JSON.parse(savedMatches);
+    }
+
+    // 4. Affichage final (matchs + classement synchro)
+    renderMatches();
     renderStandingsAndStats();
   });
 </script>
