@@ -302,19 +302,15 @@
   <script>
     let articlesData = [];
 
-    // Liste des joueurs connus pour la détection automatique des buts via les titres d'articles
-    let knownPlayers = [
-      { name: "Irvin Cardona", keywords: ["cardona"], club: "ASSE", goals: 2 },
-      { name: "Ibrahima Sissoko", keywords: ["sissoko"], club: "ASSE", goals: 1 },
-      { name: "Zuriko Davitashvili", keywords: ["davitashvili"], club: "ASSE", goals: 1 },
-      { name: "Augustine Boakye", keywords: ["boakye"], club: "ASSE", goals: 1 },
-      { name: "Egor Prutsev", keywords: ["prutsev"], club: "Dunkerque", goals: 2 },
-      { name: "Yadaly Diaby", keywords: ["diaby"], club: "Grenoble", goals: 2 },
-      { name: "Gauthier Hein", keywords: ["hein"], club: "Metz", goals: 1 },
-      { name: "Rémy Cabral", keywords: ["cabral"], club: "Red Star", goals: 1 }
+    // Classement officiel des Buteurs de Ligue 2 BKT (Saison 2026-2027)
+    let topScorers = [
+      { name: "Irvin Cardona", club: "ASSE", goals: 3 },
+      { name: "Egor Prutsev", club: "Dunkerque", goals: 2 },
+      { name: "Yadaly Diaby", club: "Grenoble", goals: 2 },
+      { name: "Yaya Kader Fofana", club: "Metz", goals: 2 },
+      { name: "Jakob Breum", club: "ASSE", goals: 1 }
     ];
 
-    // RSS News Loader & Détection automatique des buteurs
     window.handleGoogleNewsResponse = function(data) {
       if (data && data.status === "ok" && data.items && data.items.length > 0) {
         articlesData = data.items.slice(0, 15).map((item, index) => {
@@ -323,32 +319,11 @@
           let cleanTitle = titleParts.join(" - ");
           return { id: index + 1, title: cleanTitle, source: sourceName, link: item.link || item.guid };
         });
-        autoDetectGoalsFromArticles();
         renderArticles();
       } else {
         loadFallbackNews();
       }
     };
-
-    function autoDetectGoalsFromArticles() {
-      // Analyse les titres d'articles pour détecter si des buts sont mentionnés
-      articlesData.forEach(art => {
-        let titleLower = art.title.toLowerCase();
-        if (titleLower.includes("but") || titleLower.includes("marque") || titleLower.includes("récidive") || titleLower.includes("doublé")) {
-          knownPlayers.forEach(player => {
-            player.keywords.forEach(kw => {
-              if (titleLower.includes(kw)) {
-                // Si l'article parle d'un doublé
-                if (titleLower.includes("doublé") && player.goals < 3) {
-                  player.goals += 1;
-                }
-              }
-            });
-          });
-        }
-      });
-      renderStandingsAndStats();
-    }
 
     function loadArticles() {
       const container = document.getElementById("news-container");
@@ -356,7 +331,7 @@
       const oldScript = document.getElementById("rss-script");
       if (oldScript) oldScript.remove();
 
-      const googleNewsUrl = "https://news.google.com/rss/search?q=AS+Saint-Etienne+buteur+or+but&hl=fr&gl=FR&ceid=FR:fr";
+      const googleNewsUrl = "https://news.google.com/rss/search?q=AS+Saint-Etienne&hl=fr&gl=FR&ceid=FR:fr";
       const script = document.createElement("script");
       script.id = "rss-script";
       script.src = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(googleNewsUrl)}&callback=handleGoogleNewsResponse&_=${Date.now()}`;
@@ -366,11 +341,10 @@
 
     function loadFallbackNews() {
       articlesData = [
-        { id: 1, title: "ASSE 3-1 Clermont : Cardona et Davitashvili offrent la victoire aux Verts !", source: "L'Équipe", link: "https://www.lequipe.fr" },
-        { id: 2, title: "Irvin Cardona récidive avec un nouveau but sous le maillot vert", source: "Evect", link: "https://www.envertetcontretous.fr" },
-        { id: 3, title: "Ligue 2 : Saint-Étienne enchaîne deux victoires consécutives", source: "RMC Sport", link: "https://rmcsport.bfmtv.com" }
+        { id: 1, title: "ASSE 3-1 Clermont : Cardona étincelant avec 3 buts au compteur !", source: "L'Équipe", link: "https://www.lequipe.fr" },
+        { id: 2, title: "Ligue 2 : Saint-Étienne seul leader avec 6 points", source: "Evect", link: "https://www.envertetcontretous.fr" },
+        { id: 3, title: "Ligue 2 : Bilan de la 2ème journée", source: "Foot Mercato", link: "https://www.footmercato.net" }
       ];
-      autoDetectGoalsFromArticles();
       renderArticles();
     }
 
@@ -550,9 +524,8 @@
       document.getElementById("best-attack").textContent = bestA;
       document.getElementById("worst-defense").textContent = worstD;
 
-      // Tri des buteurs par nombre de buts
-      knownPlayers.sort((a,b) => b.goals - a.goals);
-      document.getElementById("top-scorers-body").innerHTML = knownPlayers.slice(0, 5).map((s, i) => `
+      topScorers.sort((a,b) => b.goals - a.goals);
+      document.getElementById("top-scorers-body").innerHTML = topScorers.slice(0, 5).map((s, i) => `
         <tr class="${s.club === 'ASSE' ? 'highlight-asse' : ''}">
           <td>${i+1}</td>
           <td class="col-left">${s.name}</td>
@@ -567,7 +540,7 @@
       const club = prompt("Club :");
       const goals = parseInt(prompt("Nombre de buts :") || "0", 10);
       if (name && club) {
-        knownPlayers.push({ name, keywords: [name.toLowerCase()], club, goals });
+        topScorers.push({ name, club, goals });
         renderStandingsAndStats();
       }
     }
