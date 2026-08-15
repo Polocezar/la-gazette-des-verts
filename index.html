@@ -17,9 +17,7 @@
       --danger-red: #d93838;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -60,9 +58,7 @@
     }
 
     @media (max-width: 1100px) {
-      .grid-layout {
-        grid-template-columns: 1fr;
-      }
+      .grid-layout { grid-template-columns: 1fr; }
     }
 
     .card {
@@ -84,7 +80,6 @@
       align-items: center;
     }
 
-    /* NEWS COLUMN */
     .news-search {
       width: 100%;
       background: var(--input-bg);
@@ -102,13 +97,8 @@
       padding-right: 5px;
     }
 
-    .news-list::-webkit-scrollbar {
-      width: 5px;
-    }
-    .news-list::-webkit-scrollbar-thumb {
-      background: var(--card-border);
-      border-radius: 3px;
-    }
+    .news-list::-webkit-scrollbar { width: 5px; }
+    .news-list::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 3px; }
 
     .news-item {
       background: #000000;
@@ -130,190 +120,87 @@
       margin-bottom: 6px;
     }
 
-    .news-item a:hover {
-      color: var(--neon-green);
-    }
+    .news-item a:hover { color: var(--neon-green); }
 
-    .news-meta {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
+    .news-meta { font-size: 0.75rem; color: var(--text-muted); }
 
     .news-delete {
-      position: absolute;
-      right: 8px;
-      bottom: 8px;
-      color: var(--danger-red);
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 0.8rem;
+      position: absolute; right: 8px; bottom: 8px;
+      color: var(--danger-red); cursor: pointer; font-weight: bold; font-size: 0.8rem;
     }
 
-    /* CENTER COLUMN: MATCHES */
     .select-label {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      margin-bottom: 5px;
-      display: block;
+      font-size: 0.75rem; color: var(--text-muted);
+      text-transform: uppercase; margin-bottom: 5px; display: block;
     }
 
-    .select-row {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .select-group {
-      flex: 1;
-    }
+    .select-row { display: flex; gap: 15px; margin-bottom: 20px; }
+    .select-group { flex: 1; }
 
     select {
-      width: 100%;
-      background: var(--input-bg);
-      border: 1px solid var(--card-border);
-      color: var(--text-white);
-      padding: 8px;
-      border-radius: 4px;
-      font-size: 0.9rem;
+      width: 100%; background: var(--input-bg);
+      border: 1px solid var(--card-border); color: var(--text-white);
+      padding: 8px; border-radius: 4px; font-size: 0.9rem;
     }
 
     .subtitle-green {
-      color: var(--neon-green);
-      font-size: 0.85rem;
-      font-weight: bold;
-      text-transform: uppercase;
-      margin-bottom: 15px;
+      color: var(--neon-green); font-size: 0.85rem; font-weight: bold;
+      text-transform: uppercase; margin-bottom: 15px;
     }
 
     .match-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #000000;
-      border: 1px solid var(--card-border);
-      padding: 8px 12px;
-      margin-bottom: 8px;
-      border-radius: 4px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: #000000; border: 1px solid var(--card-border);
+      padding: 8px 12px; margin-bottom: 8px; border-radius: 4px;
     }
 
-    .team-name {
-      font-size: 0.85rem;
-      flex: 1;
-    }
+    .team-name { font-size: 0.85rem; flex: 1; }
     .team-home { text-align: right; }
     .team-away { text-align: left; }
 
-    .score-inputs {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin: 0 12px;
-    }
+    .score-inputs { display: flex; align-items: center; gap: 6px; margin: 0 12px; }
 
     .score-input {
-      width: 35px;
-      height: 30px;
-      background: var(--input-bg);
-      border: 1px solid var(--card-border);
-      color: var(--neon-green);
-      text-align: center;
-      font-weight: bold;
-      border-radius: 3px;
+      width: 38px; height: 32px; background: var(--input-bg);
+      border: 1px solid var(--card-border); color: var(--neon-green);
+      text-align: center; font-weight: bold; font-size: 0.95rem; border-radius: 3px;
     }
 
     .btn-green {
-      width: 100%;
-      background: var(--neon-green);
-      color: #000000;
-      border: none;
-      padding: 12px;
-      font-weight: 800;
-      border-radius: 4px;
-      cursor: pointer;
-      text-transform: uppercase;
-      font-size: 0.85rem;
-      margin-top: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      width: 100%; background: var(--neon-green); color: #000000; border: none;
+      padding: 12px; font-weight: 800; border-radius: 4px; cursor: pointer;
+      text-transform: uppercase; font-size: 0.85rem; margin-top: 15px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
     }
 
-    .btn-green:hover {
-      background: var(--neon-green-hover);
-    }
+    .btn-green:hover { background: var(--neon-green-hover); }
 
     .btn-reset {
-      width: 100%;
-      background: var(--danger-red);
-      color: #ffffff;
-      border: none;
-      padding: 10px;
-      font-weight: bold;
-      border-radius: 4px;
-      cursor: pointer;
-      text-transform: uppercase;
-      font-size: 0.8rem;
-      margin-top: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      width: 100%; background: var(--danger-red); color: #ffffff; border: none;
+      padding: 10px; font-weight: bold; border-radius: 4px; cursor: pointer;
+      text-transform: uppercase; font-size: 0.8rem; margin-top: 10px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
     }
 
-    /* RIGHT COLUMN: STATS & STANDINGS */
     .stat-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.85rem;
-      margin-bottom: 6px;
-      color: var(--text-white);
+      display: flex; justify-content: space-between; font-size: 0.85rem;
+      margin-bottom: 6px; color: var(--text-white);
     }
 
-    .stat-val {
-      color: var(--text-white);
-      font-weight: 600;
-    }
+    .stat-val { color: var(--text-white); font-weight: 600; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.8rem;
-      margin-top: 10px;
-    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 10px; }
 
     th {
-      color: var(--text-muted);
-      font-weight: normal;
-      text-align: center;
-      padding: 6px 4px;
-      border-bottom: 1px solid var(--card-border);
+      color: var(--text-muted); font-weight: normal; text-align: center;
+      padding: 6px 4px; border-bottom: 1px solid var(--card-border);
     }
 
-    td {
-      padding: 6px 4px;
-      text-align: center;
-      border-bottom: 1px solid #111a13;
-    }
-
+    td { padding: 6px 4px; text-align: center; border-bottom: 1px solid #111a13; }
     .col-left { text-align: left; }
-    
-    .highlight-asse {
-      color: var(--neon-green);
-      font-weight: bold;
-    }
-
-    .add-btn {
-      color: var(--text-muted);
-      font-size: 0.75rem;
-      cursor: pointer;
-      text-decoration: none;
-    }
-
-    .add-btn:hover {
-      color: var(--neon-green);
-    }
+    .highlight-asse { color: var(--neon-green); font-weight: bold; }
+    .add-btn { color: var(--text-muted); font-size: 0.75rem; cursor: pointer; }
+    .add-btn:hover { color: var(--neon-green); }
   </style>
 </head>
 <body>
@@ -329,7 +216,7 @@
     <div class="card">
       <div class="card-title">
         <span>ACTUALITÉS DE L'ASSE</span>
-        <span style="font-size: 0.75rem;">🔄</span>
+        <span style="font-size: 0.75rem; cursor:pointer;" onclick="loadArticles()">🔄</span>
       </div>
       <input type="text" id="search-news" class="news-search" placeholder="Rechercher un article..." onkeyup="filterArticles()">
       <div id="news-container" class="news-list">
@@ -356,7 +243,7 @@
       
       <div id="match-list-container"></div>
 
-      <button class="btn-green" onclick="saveCurrentJourneeScores()">💾 ENREGISTRER LA JOURNÉE</button>
+      <button class="btn-green" onclick="saveCurrentJourneeScores(true)">💾 ENREGISTRER LA JOURNÉE</button>
       <button class="btn-reset" onclick="resetSeasonData()">🗑️ RÉINITIALISER LE CHAMPIONNAT</button>
     </div>
 
@@ -366,11 +253,11 @@
 
       <div class="stat-row">
         <span>🔥 Meilleure Attaque :</span>
-        <span class="stat-val" id="best-attack">-</span>
+        <span class="stat-val" id="best-attack">AS Saint-Étienne (6)</span>
       </div>
       <div class="stat-row" style="margin-bottom: 20px;">
         <span>🎈 Pire Défense :</span>
-        <span class="stat-val" id="worst-defense">-</span>
+        <span class="stat-val" id="worst-defense">Dunkerque / Grenoble (5)</span>
       </div>
 
       <div class="card-title" style="margin-bottom: 5px;">
@@ -446,8 +333,9 @@
 
     function loadFallbackNews() {
       articlesData = [
-        { id: 1, title: "Une cascade de blessures, Saint-Étienne à fière allure", source: "L'Équipe", link: "https://www.asse.fr" },
-        { id: 2, title: "ASSE 3-1 Clermont, Ligue 2 : Saint-Etienne enchaîne", source: "L'Équipe", link: "https://www.asse.fr" }
+        { id: 1, title: "ASSE 3-1 Clermont : Les Verts conservent la tête de la Ligue 2 !", source: "L'Équipe", link: "https://www.lequipe.fr" },
+        { id: 2, title: "Irvin Cardona récidive, 2ème but sous le maillot vert", source: "Evect", link: "https://www.envertetcontretous.fr" },
+        { id: 3, title: "Ligue 2 : Saint-Étienne enchaîne deux victoires consécutives", source: "RMC Sport", link: "https://rmcsport.bfmtv.com" }
       ];
       renderArticles();
     }
@@ -478,7 +366,6 @@
       renderArticles(filtered);
     }
 
-    // Saison & Calendrier
     const moisSaison = [
       { id: "08", name: "Août", journees: [1, 2, 3, 4] },
       { id: "09", name: "Septembre", journees: [5, 6, 7] },
@@ -486,11 +373,10 @@
     ];
 
     const clubs = [
-      "AS Saint-Étienne", "USL Dunkerque", "Rodez AF", "FC Metz",
-      "Red Star FC", "FC Annecy", "Dijon FCO", "Montpellier HSC",
-      "Clermont Foot 63", "Stade de Reims", "AS Nancy-Lorraine", "US Boulogne",
-      "EA Guingamp", "FC Nantes", "FC Sochaux-Montbéliard", "Stade Lavallois",
-      "Pau FC", "Grenoble Foot 38"
+      "AS Saint-Étienne", "FC Annecy", "USL Dunkerque", "FC Metz", "Montpellier HSC",
+      "Red Star FC", "Rodez AF", "EA Guingamp", "Pau FC", "Stade Lavallois",
+      "Stade de Reims", "Dijon FCO", "US Boulogne", "AS Nancy-Lorraine",
+      "Grenoble Foot 38", "Clermont Foot 63", "FC Sochaux-Montbéliard", "FC Nantes"
     ];
 
     let currentJournee = 2;
@@ -503,29 +389,35 @@
       { name: "Gauthier Hein", club: "Metz", goals: 1 }
     ];
 
-    function createDefaultMatches() {
-      let m = {};
-      for (let j = 1; j <= 34; j++) {
-        m[j] = [
-          { home: "FC Annecy", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
-          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
-          { home: "Pau FC", homeScore: "", awayScore: "", away: "Stade de Reims" },
-          { home: "US Boulogne", homeScore: "", awayScore: "", away: "Dijon FCO" },
-          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "Montpellier HSC" },
-          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "USL Dunkerque" },
-          { home: "FC Metz", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
-          { home: "Red Star FC", homeScore: "", awayScore: "", away: "Rodez AF" },
-          { home: "FC Nantes", homeScore: "", awayScore: "", away: "Stade Lavallois" }
-        ];
-      }
-      return m;
+    function createOfficialMatches() {
+      return {
+        1: [
+          { home: "FC Sochaux-Montbéliard", homeScore: 0, awayScore: 3, away: "AS Saint-Étienne" },
+          { home: "Clermont Foot 63", homeScore: 0, awayScore: 0, away: "Stade de Reims" },
+          { home: "Dijon FCO", homeScore: 0, awayScore: 0, away: "US Boulogne" },
+          { home: "USL Dunkerque", homeScore: 3, awayScore: 3, away: "Montpellier HSC" },
+          { home: "Rodez AF", homeScore: 2, awayScore: 1, away: "Stade Lavallois" },
+          { home: "FC Nantes", homeScore: 1, awayScore: 1, away: "FC Annecy" },
+          { home: "FC Metz", homeScore: 1, awayScore: 0, away: "EA Guingamp" },
+          { home: "AS Nancy-Lorraine", homeScore: 0, awayScore: 0, away: "Red Star FC" },
+          { home: "Pau FC", homeScore: 1, awayScore: 0, away: "Grenoble Foot 38" }
+        ],
+        2: [
+          { home: "FC Annecy", homeScore: 2, awayScore: 0, away: "FC Sochaux-Montbéliard" },
+          { home: "AS Saint-Étienne", homeScore: 3, awayScore: 1, away: "Clermont Foot 63" },
+          { home: "Pau FC", homeScore: 0, awayScore: 1, away: "Stade de Reims" },
+          { home: "US Boulogne", homeScore: 0, awayScore: 1, away: "Dijon FCO" },
+          { home: "AS Nancy-Lorraine", homeScore: 0, awayScore: 2, away: "Montpellier HSC" },
+          { home: "EA Guingamp", homeScore: 2, awayScore: 2, away: "USL Dunkerque" },
+          { home: "FC Metz", homeScore: 1, awayScore: 1, away: "Grenoble Foot 38" },
+          { home: "Red Star FC", homeScore: 1, awayScore: 0, away: "Rodez AF" },
+          { home: "FC Nantes", homeScore: 0, awayScore: 2, away: "Stade Lavallois" }
+        ]
+      };
     }
 
     function initSeason() {
-      const savedM = localStorage.getItem("gazette_season_matches");
-      seasonMatches = savedM ? JSON.parse(savedM) : createDefaultMatches();
-      const savedS = localStorage.getItem("gazette_top_scorers");
-      if (savedS) topScorers = JSON.parse(savedS);
+      seasonMatches = createOfficialMatches();
     }
 
     function setupSelects() {
@@ -559,36 +451,36 @@
         <div class="match-row">
           <span class="team-name team-home">${m.home}</span>
           <div class="score-inputs">
-            <input type="number" class="score-input" id="home-${idx}" value="${m.homeScore !== undefined ? m.homeScore : ''}">
+            <input type="number" class="score-input" id="home-${idx}" value="${m.homeScore !== undefined ? m.homeScore : ''}" oninput="updateScoresFromInput()">
             <span style="color: var(--text-muted);">-</span>
-            <input type="number" class="score-input" id="away-${idx}" value="${m.awayScore !== undefined ? m.awayScore : ''}">
+            <input type="number" class="score-input" id="away-${idx}" value="${m.awayScore !== undefined ? m.awayScore : ''}" oninput="updateScoresFromInput()">
           </div>
           <span class="team-name team-away">${m.away}</span>
         </div>
       `).join("");
     }
 
-    function saveCurrentJourneeScores() {
+    function updateScoresFromInput() {
       const list = seasonMatches[currentJournee] || [];
       list.forEach((m, idx) => {
-        const h = document.getElementById(`home-${idx}`).value;
-        const a = document.getElementById(`away-${idx}`).value;
-        m.homeScore = h !== "" ? parseInt(h) : "";
-        m.awayScore = a !== "" ? parseInt(a) : "";
+        const hVal = document.getElementById(`home-${idx}`)?.value;
+        const aVal = document.getElementById(`away-${idx}`)?.value;
+        m.homeScore = (hVal !== undefined && hVal !== "") ? parseInt(hVal, 10) : "";
+        m.awayScore = (aVal !== undefined && aVal !== "") ? parseInt(aVal, 10) : "";
       });
-      localStorage.setItem("gazette_season_matches", JSON.stringify(seasonMatches));
       renderStandingsAndStats();
-      alert("Enregistré !");
+    }
+
+    function saveCurrentJourneeScores(showAlert = false) {
+      updateScoresFromInput();
+      if (showAlert) alert("Journée enregistrée !");
     }
 
     function resetSeasonData() {
-      if (confirm("Réinitialiser toutes les données ?")) {
-        localStorage.clear();
-        initSeason();
-        setupSelects();
-        renderMatches();
-        renderStandingsAndStats();
-      }
+      initSeason();
+      setupSelects();
+      renderMatches();
+      renderStandingsAndStats();
     }
 
     function renderStandingsAndStats() {
@@ -597,7 +489,7 @@
 
       Object.keys(seasonMatches).forEach(j => {
         (seasonMatches[j] || []).forEach(m => {
-          if (m.homeScore !== "" && m.awayScore !== "" && !isNaN(m.homeScore)) {
+          if (m.homeScore !== "" && m.awayScore !== "" && !isNaN(m.homeScore) && !isNaN(m.awayScore)) {
             let h = teams[m.home], a = teams[m.away];
             if (h && a) {
               h.mj++; a.mj++;
@@ -645,10 +537,9 @@
     function addManualScorer() {
       const name = prompt("Nom du joueur :");
       const club = prompt("Club :");
-      const goals = parseInt(prompt("Nombre de buts :") || "0");
+      const goals = parseInt(prompt("Nombre de buts :") || "0", 10);
       if (name && club) {
         topScorers.push({ name, club, goals });
-        localStorage.setItem("gazette_top_scorers", JSON.stringify(topScorers));
         renderStandingsAndStats();
       }
     }
