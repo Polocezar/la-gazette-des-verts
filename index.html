@@ -15,7 +15,7 @@
     }
 
     body {
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-main);
       margin: 0;
@@ -31,8 +31,12 @@
     }
 
     @media (min-width: 900px) {
-      .container { grid-template-columns: 1fr 1fr; }
-      .full-width { grid-column: span 2; }
+      .container {
+        grid-template-columns: 1fr 1fr;
+      }
+      .full-width {
+        grid-column: span 2;
+      }
     }
 
     .card {
@@ -42,10 +46,21 @@
       padding: 20px;
     }
 
-    h1, h2 { margin-top: 0; color: var(--accent-green); }
-    .header { text-align: center; padding: 10px 0; }
+    h1, h2, h3 {
+      margin-top: 0;
+      color: var(--accent-green);
+    }
 
-    .select-group { display: flex; gap: 10px; margin-bottom: 20px; }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .select-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
 
     select, input, button {
       background-color: var(--bg-color);
@@ -56,9 +71,26 @@
       font-size: 1rem;
     }
 
-    select { flex: 1; }
-    button { background-color: var(--accent-green); color: #000; font-weight: bold; cursor: pointer; border: none; }
-    .btn-danger { background-color: #ef4444; color: #fff; }
+    select {
+      flex: 1;
+    }
+
+    button {
+      background-color: var(--accent-green);
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .btn-danger {
+      background-color: #ef4444;
+      color: #fff;
+    }
 
     .match-row {
       display: flex;
@@ -68,43 +100,123 @@
       border-bottom: 1px solid var(--border-color);
     }
 
-    .team-name { flex: 1; font-size: 0.95rem; }
+    .team-name {
+      flex: 1;
+      font-size: 0.95rem;
+    }
+
     .team-home { text-align: right; }
     .team-away { text-align: left; }
 
-    .score-inputs { display: flex; align-items: center; gap: 8px; margin: 0 15px; }
-    .score-input { width: 45px; text-align: center; }
+    .score-inputs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 15px;
+    }
 
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { padding: 8px; text-align: center; border-bottom: 1px solid var(--border-color); }
-    th { color: var(--text-muted); }
+    .score-input {
+      width: 45px;
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 8px;
+      text-align: center;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
     .col-club { text-align: left; }
-    .highlight-asse { background-color: rgba(16, 185, 129, 0.15); font-weight: bold; }
+    
+    .highlight-asse {
+      background-color: rgba(16, 185, 129, 0.15);
+      font-weight: bold;
+    }
 
     .news-item {
       padding: 10px 0;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
-    .news-title { color: var(--text-main); text-decoration: none; }
-    .news-source { font-size: 0.8rem; color: var(--text-muted); }
+
+    .news-title {
+      color: var(--text-main);
+      text-decoration: none;
+    }
+
+    .news-title:hover {
+      color: var(--accent-green);
+    }
+
+    .news-source {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .news-delete {
+      color: #ef4444;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    .stats-box {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 15px;
+      padding: 10px;
+      background: var(--bg-color);
+      border-radius: 8px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .stat-value {
+      font-size: 1rem;
+      font-weight: bold;
+      color: var(--accent-green);
+    }
   </style>
 </head>
 <body>
 
   <div class="header">
     <h1>LA GAZETTE DES VERTS</h1>
-    <p style="color: var(--text-muted);">Suivi de la saison</p>
+    <p style="color: var(--text-muted);">Suivi en direct de la saison de l'AS Saint-Étienne</p>
   </div>
 
   <div class="container">
 
+    <!-- Actualités RSS -->
     <div class="card full-width">
       <h2>Dernières Actualités ASSE</h2>
-      <div id="news-container">Chargement...</div>
+      <input type="text" id="search-news" placeholder="Filtrer les actualités..." onkeyup="filterArticles()" style="width: 100%; box-sizing: border-box; margin-bottom: 10px;">
+      <div id="news-container">
+        <div style="color: var(--text-muted); font-size: 0.85rem;">Chargement des actus...</div>
+      </div>
     </div>
 
+    <!-- Saisie des Résultats -->
     <div class="card">
       <h2 id="form-title">Saisie des Matchs</h2>
       <div class="select-group">
@@ -112,26 +224,54 @@
         <select id="select-journee" onchange="changeJournee()"></select>
       </div>
       <div id="match-list-container"></div>
-      <button onclick="saveCurrentJourneeScores()" style="width: 100%; margin-top: 15px;">Enregistrer la journée</button>
+      <div style="margin-top: 15px; display: flex; gap: 10px;">
+        <button onclick="saveCurrentJourneeScores()" style="flex: 1;">Enregistrer la journée</button>
+      </div>
     </div>
 
+    <!-- Buteurs & Stats -->
     <div class="card">
       <h2>Meilleurs Buteurs</h2>
       <table>
         <thead>
-          <tr><th>#</th><th class="col-club">Joueur</th><th>Club</th><th style="text-align: right;">Buts</th></tr>
+          <tr>
+            <th>#</th>
+            <th class="col-club">Joueur</th>
+            <th>Club</th>
+            <th style="text-align: right;">Buts</th>
+          </tr>
         </thead>
         <tbody id="top-scorers-body"></tbody>
       </table>
       <button onclick="addManualScorer()" style="margin-top: 15px; width: 100%;">+ Ajouter un buteur</button>
+
+      <div class="stats-box">
+        <div class="stat-item">
+          <div class="stat-label">Meilleure Attaque</div>
+          <div class="stat-value" id="best-attack">-</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Moins Bonne Défense</div>
+          <div class="stat-value" id="worst-defense">-</div>
+        </div>
+      </div>
     </div>
 
+    <!-- Classement Général -->
     <div class="card full-width">
       <h2>Classement Général Ligue 2</h2>
       <table>
         <thead>
           <tr>
-            <th class="col-club">Club</th><th>MJ</th><th>G</th><th>N</th><th>P</th><th>BP</th><th>BC</th><th>DB</th><th>PTS</th>
+            <th class="col-club">Club</th>
+            <th>MJ</th>
+            <th>G</th>
+            <th>N</th>
+            <th>P</th>
+            <th>BP</th>
+            <th>BC</th>
+            <th>DB</th>
+            <th>PTS</th>
           </tr>
         </thead>
         <tbody id="standings-body"></tbody>
@@ -144,10 +284,96 @@
   </div>
 
   <script>
+    let articlesData = [];
+
+    // RSS Loader
+    window.handleGoogleNewsResponse = function(data) {
+      if (data && data.status === "ok" && data.items && data.items.length > 0) {
+        articlesData = data.items.slice(0, 15).map((item, index) => {
+          let titleParts = item.title.split(" - ");
+          let sourceName = titleParts.length > 1 ? titleParts.pop() : "Presse Web";
+          let cleanTitle = titleParts.join(" - ");
+
+          return {
+            id: index + 1,
+            title: cleanTitle,
+            source: sourceName,
+            link: item.link || item.guid
+          };
+        });
+        renderArticles();
+      } else {
+        loadFallbackNews();
+      }
+    };
+
+    function loadArticles() {
+      const container = document.getElementById("news-container");
+      container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem;">Recherche de l'actualité web ASSE...</div>`;
+
+      const oldScript = document.getElementById("rss-jsonp-script");
+      if (oldScript) oldScript.remove();
+
+      const googleNewsUrl = "https://news.google.com/rss/search?q=AS+Saint-Etienne&hl=fr&gl=FR&ceid=FR:fr";
+      
+      const script = document.createElement("script");
+      script.id = "rss-jsonp-script";
+      script.src = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(googleNewsUrl)}&callback=handleGoogleNewsResponse&_=${Date.now()}`;
+      script.onerror = () => loadFallbackNews();
+
+      document.body.appendChild(script);
+    }
+
+    function loadFallbackNews() {
+      articlesData = [
+        { id: 1, title: "Prochain match des Verts : Préparation tactique à L'Étrat", source: "Presse Web", link: "https://www.asse.fr" },
+        { id: 2, title: "Point d'effectif : Le bilan médical du staff de l'ASSE", source: "Presse Web", link: "https://www.asse.fr" }
+      ];
+      renderArticles();
+    }
+
+    function renderArticles(list = articlesData) {
+      const container = document.getElementById("news-container");
+      if (!list || list.length === 0) {
+        container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem;">Aucun article trouvé.</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(a => `
+        <div class="news-item">
+          <a class="news-title" href="${a.link}" target="_blank" rel="noopener noreferrer">${a.title}</a>
+          <span class="news-source">Source : ${a.source}</span>
+          <span class="news-delete" onclick="deleteArticle(${a.id})">×</span>
+        </div>
+      `).join("");
+    }
+
+    function deleteArticle(id) {
+      articlesData = articlesData.filter(a => a.id !== id);
+      renderArticles();
+    }
+
+    function filterArticles() {
+      const query = document.getElementById("search-news").value.toLowerCase();
+      const filtered = articlesData.filter(a => 
+        a.title.toLowerCase().includes(query) || 
+        a.source.toLowerCase().includes(query)
+      );
+      renderArticles(filtered);
+    }
+
+    // Structure de la saison
     const moisSaison = [
       { id: "08", name: "Août", journees: [1, 2, 3, 4] },
       { id: "09", name: "Septembre", journees: [5, 6, 7] },
-      { id: "10", name: "Octobre", journees: [8, 9, 10, 11] }
+      { id: "10", name: "Octobre", journees: [8, 9, 10, 11] },
+      { id: "11", name: "Novembre", journees: [12, 13, 14] },
+      { id: "12", name: "Décembre", journees: [15, 16, 17] },
+      { id: "01", name: "Janvier", journees: [18, 19, 20] },
+      { id: "02", name: "Février", journees: [21, 22, 23, 24] },
+      { id: "03", name: "Mars", journees: [25, 26, 27] },
+      { id: "04", name: "Avril", journees: [28, 29, 30, 31] },
+      { id: "05", name: "Mai", journees: [32, 33, 34] }
     ];
 
     const clubs = [
@@ -160,7 +386,8 @@
 
     let currentJournee = 2;
     let seasonMatches = {};
-    let topScorers = [
+
+    let defaultScorers = [
       { name: "Irvin Cardona", club: "ASSE", goals: 2 },
       { name: "Egor Prutsev", club: "Dunkerque", goals: 2 },
       { name: "Yadaly Diaby", club: "Grenoble", goals: 2 },
@@ -168,41 +395,102 @@
       { name: "Thierno Ballo", club: "ASSE", goals: 1 }
     ];
 
+    let topScorers = [...defaultScorers];
+
     function createDefaultSeasonMatches() {
       let matches = {};
       for (let j = 1; j <= 34; j++) {
         matches[j] = [];
+        let shift = (j - 1) % (clubs.length - 1);
         for (let i = 0; i < clubs.length / 2; i++) {
-          matches[j].push({ home: clubs[i], homeScore: "", awayScore: "", away: clubs[clubs.length - 1 - i] });
+          let homeIdx = (i + shift) % (clubs.length - 1);
+          let awayIdx = (clubs.length - 1 - i + shift) % (clubs.length - 1);
+          if (i === 0) awayIdx = clubs.length - 1;
+          
+          if (j % 2 === 0) {
+            matches[j].push({ home: clubs[awayIdx], homeScore: "", awayScore: "", away: clubs[homeIdx] });
+          } else {
+            matches[j].push({ home: clubs[homeIdx], homeScore: "", awayScore: "", away: clubs[awayIdx] });
+          }
         }
       }
-      matches[1][0] = { home: "FC Sochaux-Montbéliard", homeScore: 0, awayScore: 3, away: "AS Saint-Étienne" };
-      matches[2][0] = { home: "AS Saint-Étienne", homeScore: 3, awayScore: 1, away: "Clermont Foot 63" };
+
+      // Journée 1
+      matches[1] = [
+        { home: "FC Sochaux-Montbéliard", homeScore: 0, awayScore: 3, away: "AS Saint-Étienne" },
+        { home: "Clermont Foot 63", homeScore: 0, awayScore: 0, away: "Stade de Reims" },
+        { home: "Dijon FCO", homeScore: 1, awayScore: 1, away: "Montpellier HSC" },
+        { home: "USL Dunkerque", homeScore: 4, awayScore: 2, away: "Grenoble Foot 38" },
+        { home: "Rodez AF", homeScore: 3, awayScore: 1, away: "Stade Lavallois" },
+        { home: "FC Nantes", homeScore: 0, awayScore: 1, away: "Red Star FC" },
+        { home: "FC Metz", homeScore: 2, awayScore: 1, away: "EA Guingamp" },
+        { home: "AS Nancy-Lorraine", homeScore: 0, awayScore: 0, away: "US Boulogne" },
+        { home: "Pau FC", homeScore: 0, awayScore: 1, away: "FC Annecy" }
+      ];
+
+      // Journée 2
+      matches[2] = [
+        { home: "FC Annecy", homeScore: 1, awayScore: 1, away: "FC Sochaux-Montbéliard" },
+        { home: "AS Saint-Étienne", homeScore: 3, awayScore: 1, away: "Clermont Foot 63" },
+        { home: "Pau FC", homeScore: 0, awayScore: 2, away: "Stade de Reims" },
+        { home: "US Boulogne", homeScore: 1, awayScore: 1, away: "Dijon FCO" },
+        { home: "AS Nancy-Lorraine", homeScore: 1, awayScore: 2, away: "Montpellier HSC" },
+        { home: "EA Guingamp", homeScore: 0, awayScore: 0, away: "USL Dunkerque" },
+        { home: "FC Metz", homeScore: 1, awayScore: 1, away: "Grenoble Foot 38" },
+        { home: "Red Star FC", homeScore: 2, awayScore: 1, away: "Rodez AF" },
+        { home: "FC Nantes", homeScore: 0, awayScore: 0, away: "Stade Lavallois" }
+      ];
+
       return matches;
     }
 
     function initSeason() {
       const savedMatches = localStorage.getItem("gazette_season_matches");
-      seasonMatches = savedMatches ? JSON.parse(savedMatches) : createDefaultSeasonMatches();
-      
+      if (savedMatches) {
+        try {
+          const parsed = JSON.parse(savedMatches);
+          if (parsed && Object.keys(parsed).length > 0) {
+            seasonMatches = parsed;
+          } else {
+            seasonMatches = createDefaultSeasonMatches();
+          }
+        } catch(e) {
+          seasonMatches = createDefaultSeasonMatches();
+        }
+      } else {
+        seasonMatches = createDefaultSeasonMatches();
+      }
+
       const savedScorers = localStorage.getItem("gazette_top_scorers");
-      if (savedScorers) topScorers = JSON.parse(savedScorers);
+      if (savedScorers) {
+        try {
+          topScorers = JSON.parse(savedScorers);
+        } catch(e) {
+          topScorers = [...defaultScorers];
+        }
+      }
     }
 
     function setupSelects() {
-      const mSel = document.getElementById("select-mois");
-      mSel.innerHTML = moisSaison.map(m => `<option value="${m.id}">${m.name}</option>`).join("");
-      
-      const jSel = document.getElementById("select-journee");
-      jSel.innerHTML = moisSaison[0].journees.map(j => `<option value="${j}">Journée ${j}</option>`).join("");
+      const monthSelect = document.getElementById("select-mois");
+      monthSelect.innerHTML = moisSaison.map(m => `<option value="${m.id}">${m.name}</option>`).join("");
+
+      const monthObj = moisSaison.find(m => m.journees.includes(currentJournee)) || moisSaison[0];
+      monthSelect.value = monthObj.id;
+
+      const journeeSelect = document.getElementById("select-journee");
+      journeeSelect.innerHTML = monthObj.journees.map(j => `<option value="${j}">Journée ${j}</option>`).join("");
+      journeeSelect.value = currentJournee;
     }
 
     function filterJourneesByMonth() {
-      const mId = document.getElementById("select-mois").value;
-      const mObj = moisSaison.find(m => m.id === mId) || moisSaison[0];
-      const jSel = document.getElementById("select-journee");
-      jSel.innerHTML = mObj.journees.map(j => `<option value="${j}">Journée ${j}</option>`).join("");
-      currentJournee = mObj.journees[0];
+      const monthId = document.getElementById("select-mois").value;
+      const monthObj = moisSaison.find(m => m.id === monthId);
+      const journeeSelect = document.getElementById("select-journee");
+      
+      journeeSelect.innerHTML = monthObj.journees.map(j => `<option value="${j}">Journée ${j}</option>`).join("");
+      currentJournee = monthObj.journees[0];
+      journeeSelect.value = currentJournee;
       renderMatches();
     }
 
@@ -212,17 +500,17 @@
     }
 
     function renderMatches() {
-      document.getElementById("form-title").textContent = `JOURNÉE ${currentJournee}`;
+      document.getElementById("form-title").textContent = `SAISIR LES RÉSULTATS DE LA JOURNÉE ${currentJournee}`;
       const container = document.getElementById("match-list-container");
-      const list = seasonMatches[currentJournee] || [];
+      const matches = seasonMatches[currentJournee] || [];
 
-      container.innerHTML = list.map((m, idx) => `
+      container.innerHTML = matches.map((m, idx) => `
         <div class="match-row">
           <span class="team-name team-home">${m.home}</span>
           <div class="score-inputs">
-            <input type="number" class="score-input" id="home-${idx}" value="${m.homeScore !== undefined ? m.homeScore : ''}">
+            <input type="number" class="score-input" id="home-${idx}" value="${m.homeScore !== "" ? m.homeScore : ''}">
             <span>-</span>
-            <input type="number" class="score-input" id="away-${idx}" value="${m.awayScore !== undefined ? m.awayScore : ''}">
+            <input type="number" class="score-input" id="away-${idx}" value="${m.awayScore !== "" ? m.awayScore : ''}">
           </div>
           <span class="team-name team-away">${m.away}</span>
         </div>
@@ -230,63 +518,135 @@
     }
 
     function saveCurrentJourneeScores() {
-      const list = seasonMatches[currentJournee] || [];
-      list.forEach((m, idx) => {
-        const h = document.getElementById(`home-${idx}`).value;
-        const a = document.getElementById(`away-${idx}`).value;
-        m.homeScore = h !== "" ? parseInt(h) : "";
-        m.awayScore = a !== "" ? parseInt(a) : "";
+      const matches = seasonMatches[currentJournee] || [];
+      matches.forEach((m, idx) => {
+        const hInput = document.getElementById(`home-${idx}`);
+        const aInput = document.getElementById(`away-${idx}`);
+        if (hInput && aInput) {
+          m.homeScore = hInput.value !== "" ? parseInt(hInput.value) : "";
+          m.awayScore = aInput.value !== "" ? parseInt(aInput.value) : "";
+        }
       });
+
       localStorage.setItem("gazette_season_matches", JSON.stringify(seasonMatches));
       renderStandingsAndStats();
-      alert("Enregistré !");
+      alert(`Journée ${currentJournee} sauvegardée !`);
     }
 
-    function renderStandingsAndStats() {
+    function resetSeasonData() {
+      if (confirm("Voulez-vous réinitialiser tous les scores et buteurs de la saison ?")) {
+        localStorage.clear();
+        
+        seasonMatches = createDefaultSeasonMatches();
+        topScorers = [...defaultScorers];
+        
+        localStorage.setItem("gazette_season_matches", JSON.stringify(seasonMatches));
+        localStorage.setItem("gazette_top_scorers", JSON.stringify(topScorers));
+
+        currentJournee = 2;
+        setupSelects();
+        renderMatches();
+        renderStandingsAndStats();
+      }
+    }
+
+    function calculateStandings() {
       let teams = {};
-      clubs.forEach(c => teams[c] = { name: c, mj: 0, g: 0, n: 0, p: 0, bp: 0, bc: 0, db: 0, pts: 0 });
+
+      clubs.forEach(t => {
+        teams[t] = { name: t, mj: 0, g: 0, n: 0, p: 0, bp: 0, bc: 0, db: 0, pts: 0 };
+      });
 
       Object.keys(seasonMatches).forEach(j => {
         (seasonMatches[j] || []).forEach(m => {
-          if (m.homeScore !== "" && m.awayScore !== "" && !isNaN(m.homeScore)) {
-            let h = teams[m.home], a = teams[m.away];
+          if (m.homeScore !== "" && m.awayScore !== "" && !isNaN(m.homeScore) && !isNaN(m.awayScore)) {
+            let hScore = parseInt(m.homeScore);
+            let aScore = parseInt(m.awayScore);
+
+            let h = teams[m.home];
+            let a = teams[m.away];
+
             if (h && a) {
               h.mj++; a.mj++;
-              h.bp += m.homeScore; h.bc += m.awayScore;
-              a.bp += m.awayScore; a.bc += m.homeScore;
-              if (m.homeScore > m.awayScore) { h.g++; h.pts += 3; a.p++; }
-              else if (m.homeScore < m.awayScore) { a.g++; a.pts += 3; h.p++; }
-              else { h.n++; h.pts++; a.n++; a.pts++; }
-              h.db = h.bp - h.bc; a.db = a.bp - a.bc;
+              h.bp += hScore; h.bc += aScore;
+              a.bp += aScore; a.bc += hScore;
+
+              if (hScore > aScore) {
+                h.g++; h.pts += 3;
+                a.p++;
+              } else if (hScore < aScore) {
+                a.g++; a.pts += 3;
+                h.p++;
+              } else {
+                h.n++; h.pts += 1;
+                a.n++; a.pts += 1;
+              }
+
+              h.db = h.bp - h.bc;
+              a.db = a.bp - a.bc;
             }
           }
         });
       });
 
-      const sorted = Object.values(teams).sort((a,b) => b.pts - a.pts || b.db - a.db);
-      document.getElementById("standings-body").innerHTML = sorted.map((t, i) => `
+      return Object.values(teams).sort((a, b) => {
+        if (b.pts !== a.pts) return b.pts - a.pts;
+        if (b.db !== a.db) return b.db - a.db;
+        return b.bp - a.bp;
+      });
+    }
+
+    function renderStandingsAndStats() {
+      const standings = calculateStandings();
+      const standingsBody = document.getElementById("standings-body");
+
+      standingsBody.innerHTML = standings.map((t, index) => `
         <tr class="${t.name.includes("Saint-Étienne") ? 'highlight-asse' : ''}">
-          <td class="col-club">${i+1}. ${t.name}</td>
-          <td>${t.mj}</td><td>${t.g}</td><td>${t.n}</td><td>${t.p}</td>
-          <td>${t.bp}</td><td>${t.bc}</td><td>${t.db}</td><td><strong>${t.pts}</strong></td>
+          <td class="col-club">${index + 1}. ${t.name}</td>
+          <td>${t.mj}</td>
+          <td>${t.g}</td>
+          <td>${t.n}</td>
+          <td>${t.p}</td>
+          <td>${t.bp}</td>
+          <td>${t.bc}</td>
+          <td>${t.db > 0 ? '+' + t.db : t.db}</td>
+          <td><strong>${t.pts}</strong></td>
         </tr>
       `).join("");
 
-      topScorers.sort((a,b) => b.goals - a.goals);
-      document.getElementById("top-scorers-body").innerHTML = topScorers.slice(0,5).map((s, i) => `
-        <tr class="${s.club === 'ASSE' ? 'highlight-asse' : ''}">
-          <td><strong>${i+1}</strong></td>
-          <td>${s.name}</td>
-          <td style="color: var(--text-muted);">${s.club}</td>
-          <td style="text-align: right; font-weight: bold;">${s.goals}</td>
-        </tr>
-      `).join("");
+      let maxBP = -1, bestAttack = "-";
+      let maxBC = -1, worstDefense = "-";
+
+      standings.forEach(t => {
+        if (t.mj > 0) {
+          if (t.bp > maxBP) { maxBP = t.bp; bestAttack = `${t.name} (${t.bp})`; }
+          if (t.bc > maxBC) { maxBC = t.bc; worstDefense = `${t.name} (${t.bc})`; }
+        }
+      });
+
+      document.getElementById("best-attack").textContent = bestAttack;
+      document.getElementById("worst-defense").textContent = worstDefense;
+
+      topScorers.sort((a, b) => b.goals - a.goals);
+
+      const scorersBody = document.getElementById("top-scorers-body");
+      if (scorersBody) {
+        scorersBody.innerHTML = topScorers.slice(0, 5).map((s, idx) => `
+          <tr class="${s.club === "ASSE" ? 'highlight-asse' : ''}">
+            <td><strong>${idx + 1}</strong></td>
+            <td>${s.name}</td>
+            <td style="color: var(--text-muted);">${s.club}</td>
+            <td style="text-align: right; font-weight: bold;">${s.goals}</td>
+          </tr>
+        `).join("");
+      }
     }
 
     function addManualScorer() {
-      const name = prompt("Nom :");
-      const club = prompt("Club :");
-      const goals = parseInt(prompt("Buts :") || "0");
+      const name = prompt("Nom du joueur :");
+      const club = prompt("Club (ex: ASSE) :");
+      const goals = parseInt(prompt("Nombre de buts :") || "0");
+
       if (name && club) {
         topScorers.push({ name, club, goals });
         localStorage.setItem("gazette_top_scorers", JSON.stringify(topScorers));
@@ -294,18 +654,10 @@
       }
     }
 
-    function resetSeasonData() {
-      if (confirm("Réinitialiser ?")) {
-        localStorage.clear();
-        initSeason();
-        setupSelects();
-        renderMatches();
-        renderStandingsAndStats();
-      }
-    }
-
+    // Chargement initial
     document.addEventListener("DOMContentLoaded", () => {
       initSeason();
+      loadArticles();
       setupSelects();
       renderMatches();
       renderStandingsAndStats();
