@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -240,10 +240,13 @@
       </div>
 
       <div class="subtitle-green" id="form-title">SAISIR LES RÉSULTATS</div>
-      
+
+      <button id="btn-api-results" class="btn-green" style="background: var(--card-bg); color: var(--neon-green); border: 1px solid var(--neon-green); margin-top: 0; margin-bottom: 12px;" onclick="fetchResultsFromAPI()">🔄 RÉCUPÉRER VIA API-FOOTBALL</button>
+
       <div id="match-list-container"></div>
 
       <button class="btn-green" onclick="saveCurrentJourneeScores(true)">💾 ENREGISTRER LA JOURNÉE</button>
+      <button class="btn-reset" style="background: #1a1a1a; border: 1px solid var(--card-border); color: var(--text-muted); margin-top: 8px;" onclick="importOfficialCalendar()">📅 IMPORTER LE CALENDRIER OFFICIEL</button>
       <button class="btn-reset" onclick="resetSeasonData()">🗑️ RÉINITIALISER LE CHAMPIONNAT</button>
     </div>
 
@@ -262,7 +265,10 @@
 
       <div class="card-title" style="margin-bottom: 5px;">
         <span>⚽ TOP 5 BUTEURS</span>
-        <span class="add-btn" onclick="addManualScorer()">+ Ajouter</span>
+        <span>
+          <span class="add-btn" onclick="refreshTopScorersFromAPI()" title="Rafraîchir via API-Football">🔄 API</span>
+          <span class="add-btn" onclick="addManualScorer()">&nbsp;+ Ajouter</span>
+        </span>
       </div>
 
       <table>
@@ -604,6 +610,83 @@
           <td><strong>${s.goals}</strong></td>
         </tr>
       `).join("");
+    }
+
+    async function fetchResultsFromAPI() {
+      const btn = document.getElementById('btn-api-results');
+      const original = btn.textContent;
+      btn.textContent = '⏳ RÉCUPÉRATION...';
+      btn.disabled = true;
+      try {
+        const response = await fetch(`/api/football?type=fixtures&journee=${currentJournee}`);
+        const data = await response.json();
+        if (!data.success) throw new Error(data.error || "Erreur API");
+
+        const list = seasonMatches[currentJournee] || [];
+        let updated = 0;
+        data.fixtures.forEach(f => {
+          const match = list.find(m => m.home === f.home && m.away === f.away);
+          if (match && f.homeScore !== null && f.awayScore !== null) {
+            match.homeScore = f.homeScore;
+            match.awayScore = f.awayScore;
+            updated++;
+          }
+        });
+        localStorage.setItem("seasonMatches", JSON.stringify(seasonMatches));
+        renderMatches();
+        renderStandingsAndStats();
+        alert(updated > 0
+          ? `${updated} score(s) mis à jour depuis API-Football. Pense à vérifier puis à enregistrer la journée.`
+          : "Aucun résultat disponible pour cette journée (matchs pas encore joués, ou calendrier de l'appli non aligné sur le vrai calendrier — utilise \"Importer le calendrier officiel\").");
+      } catch (e) {
+        alert("Erreur API-Football : " + e.message);
+      } finally {
+        btn.textContent = original;
+        btn.disabled = false;
+      }
+    }
+
+    async function importOfficialCalendar() {
+      if (!confirm("Importer le calendrier officiel Ligue 2 BKT depuis API-Football ?\nLes journées générées automatiquement seront remplacées par les vrais matchs (les scores déjà saisis sont conservés quand le match existe toujours).")) return;
+      try {
+        const response = await fetch('/api/football?type=calendar');
+        const data = await response.json();
+        if (!data.success) throw new Error(data.error || "Échec de l'import");
+
+        const newSeasonMatches = {};
+        Object.keys(data.calendar).forEach(j => {
+          newSeasonMatches[j] = data.calendar[j].map(m => {
+            const old = (seasonMatches[j] || []).find(om => om.home === m.home && om.away === m.away);
+            return {
+              home: m.home,
+              away: m.away,
+              homeScore: (m.homeScore !== null && m.homeScore !== undefined) ? m.homeScore : (old ? old.homeScore : ""),
+              awayScore: (m.awayScore !== null && m.awayScore !== undefined) ? m.awayScore : (old ? old.awayScore : "")
+            };
+          });
+        });
+        seasonMatches = newSeasonMatches;
+        localStorage.setItem("seasonMatches", JSON.stringify(seasonMatches));
+        setupSelects();
+        renderMatches();
+        renderStandingsAndStats();
+        alert("Calendrier officiel importé avec succès !");
+      } catch (e) {
+        alert("Erreur API-Football : " + e.message);
+      }
+    }
+
+    async function refreshTopScorersFromAPI() {
+      try {
+        const response = await fetch('/api/football?type=topscorers');
+        const data = await response.json();
+        if (!data.success) throw new Error(data.error || "Erreur API");
+        topScorers = data.topScorers;
+        localStorage.setItem("topScorers", JSON.stringify(topScorers));
+        renderStandingsAndStats();
+      } catch (e) {
+        alert("Erreur API-Football : " + e.message);
+      }
     }
 
     function addManualScorer() {
