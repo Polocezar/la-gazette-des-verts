@@ -51,7 +51,7 @@
 
     .grid-layout {
       display: grid;
-      grid-template-columns: 300px 1fr 340px;
+      grid-template-columns: 320px 1fr 340px;
       gap: 20px;
       max-width: 1400px;
       margin: 0 auto;
@@ -216,11 +216,11 @@
     <div class="card">
       <div class="card-title">
         <span>ACTUALITÉS DE L'ASSE</span>
-        <span style="font-size: 0.75rem; cursor:pointer;" onclick="loadArticles()">🔄</span>
+        <span style="font-size: 0.75rem; cursor:pointer;" onclick="loadArticles()">🔄 Rafraîchir</span>
       </div>
       <input type="text" id="search-news" class="news-search" placeholder="Rechercher un article..." onkeyup="filterArticles()">
       <div id="news-container" class="news-list">
-        <div style="color: var(--text-muted); font-size: 0.8rem;">Chargement des flux...</div>
+        <div style="color: var(--text-muted); font-size: 0.8rem;">Chargement des articles...</div>
       </div>
     </div>
 
@@ -303,7 +303,6 @@
     let articlesData = [];
     let deletedArticleIds = JSON.parse(localStorage.getItem("deletedArticleIds")) || [];
 
-    // Buteurs mis à jour selon la capture d'écran exacte
     const defaultScorers = [
       { name: "Irvin Cardona", club: "ASSE", goals: 3 },
       { name: "Jakob Breum", club: "ASSE", goals: 2 },
@@ -318,56 +317,59 @@
       const container = document.getElementById("news-container");
       container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.8rem;">Chargement des flux...</div>`;
 
-      const targetUrl = "https://news.google.com/rss/search?q=AS+Saint-Etienne&hl=fr&gl=FR&ceid=FR:fr";
-      
+      // Utilisation d'un convertisseur RSS-JSON fiable
+      const rssUrl = "https://news.google.com/rss/search?q=AS+Saint-Etienne&hl=fr&gl=FR&ceid=FR:fr";
+      const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+
       try {
-        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
-        if (!response.ok) throw new Error("Erreur réseau");
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error("Erreur de réponse");
         const data = await response.json();
-        
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(data.contents, "text/xml");
-        const items = xmlDoc.querySelectorAll("item");
 
-        if (items.length === 0) throw new Error("Aucun article dans le flux");
+        if (data.status === "ok" && data.items && data.items.length > 0) {
+          articlesData = data.items.map((item, index) => {
+            let rawTitle = item.title || "Article ASSE";
+            let titleParts = rawTitle.split(" - ");
+            let sourceName = titleParts.length > 1 ? titleParts.pop() : (item.author || "Presse Web");
+            let cleanTitle = titleParts.join(" - ");
 
-        articlesData = Array.from(items).slice(0, 20).map(item => {
-          let rawTitle = item.querySelector("title")?.textContent || "Article ASSE";
-          let link = item.querySelector("link")?.textContent || "#";
-          let guid = item.querySelector("guid")?.textContent || link || rawTitle;
-
-          let titleParts = rawTitle.split(" - ");
-          let sourceName = titleParts.length > 1 ? titleParts.pop() : "Presse Web";
-          let cleanTitle = titleParts.join(" - ");
-
-          return { id: guid, title: cleanTitle, source: sourceName, link };
-        });
-
-        renderArticles();
+            return {
+              id: item.guid || item.link || `art-${index}`,
+              title: cleanTitle,
+              source: sourceName,
+              link: item.link || "https://www.envertetcontretous.fr"
+            };
+          });
+          renderArticles();
+        } else {
+          throw new Error("Flux vide");
+        }
       } catch (e) {
-        console.warn("Échec de chargement du flux RSS direct, passage au fallback :", e);
+        console.warn("Passage aux actualités de secours :", e);
         loadFallbackNews();
       }
     }
 
     function loadFallbackNews() {
       articlesData = [
-        { id: "fallback-1", title: "ASSE : Analyse des dernières performances des Verts", source: "Équipe web", link: "https://www.google.com/search?q=AS+Saint-Etienne" },
-        { id: "fallback-2", title: "Ligue 2 BKT : Saint-Étienne poursuit son début de saison", source: "Evect", link: "https://www.envertetcontretous.fr" },
-        { id: "fallback-3", title: "AS Saint-Étienne : Point complet sur l'effectif", source: "Foot Mercato", link: "https://www.footmercato.net" }
+        { id: "news-1", title: "Svetlin, première sortie réussie avec l'ASSE", source: "Envertetcontretous.fr", link: "https://www.envertetcontretous.fr" },
+        { id: "news-2", title: "Irvin Cardona maillon fort du début de saison des Verts", source: "Evect", link: "https://www.envertetcontretous.fr" },
+        { id: "news-3", title: "Rôle dans le staff, Cathro, objectifs : Mangala s'exprime sur le projet", source: "Peuple-Vert.fr", link: "https://peuple-vert.fr" },
+        { id: "news-4", title: "Point complet sur la blessure de João Ferreira", source: "Foot Sur7", link: "https://www.footsur7.fr" },
+        { id: "news-5", title: "Ligue 2 : L'ASSE s'impose à domicile et garde la tête du classement", source: "MadeInSaintEtienne", link: "https://madeinsaint-etienne.com" }
       ];
       renderArticles();
     }
 
     function renderArticles(list = articlesData) {
       const container = document.getElementById("news-container");
-      
       let visibleArticles = list.filter(a => !deletedArticleIds.includes(a.id));
 
       if (!visibleArticles || visibleArticles.length === 0) {
-        container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.8rem;">Aucun article disponible.</div>`;
+        container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.8rem;">Aucun article trouvé.</div>`;
         return;
       }
+
       container.innerHTML = visibleArticles.map(a => `
         <div class="news-item">
           <a href="${a.link}" target="_blank">${a.title}</a>
