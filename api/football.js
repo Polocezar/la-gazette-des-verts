@@ -8,6 +8,8 @@
 //   /api/football?type=calendar             -> calendrier complet de la saison
 //   /api/football?type=topscorers           -> top buteurs de la Ligue 2 BKT
 
+const axios = require('axios');
+
 const API_BASE = 'https://v3.football.api-sports.io';
 
 const CLUBS = [
@@ -43,15 +45,20 @@ function currentSeasonYear() {
   return month >= 7 ? now.getFullYear() : now.getFullYear() - 1;
 }
 
+async function apiCall(path, apiKey) {
+  const response = await axios.get(`${API_BASE}${path}`, {
+    timeout: 8000,
+    headers: { 'x-apisports-key': apiKey }
+  });
+  return response.data;
+}
+
 // Mise en cache légère au niveau du process (utile si l'instance serverless reste "chaude")
 let cachedLeague = null;
 
 async function resolveLeague(apiKey) {
   if (cachedLeague) return cachedLeague;
-  const r = await fetch(`${API_BASE}/leagues?name=Ligue 2&country=France`, {
-    headers: { 'x-apisports-key': apiKey }
-  });
-  const data = await r.json();
+  const data = await apiCall('/leagues?name=Ligue 2&country=France', apiKey);
   const league = data.response && data.response[0];
   if (!league) throw new Error("Ligue 2 introuvable via l'API");
   const wantedYear = currentSeasonYear();
@@ -78,10 +85,7 @@ module.exports = async (req, res) => {
 
     if (type === 'topscorers') {
       res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
-      const r = await fetch(`${API_BASE}/players/topscorers?league=${leagueId}&season=${season}`, {
-        headers: { 'x-apisports-key': apiKey }
-      });
-      const data = await r.json();
+      const data = await apiCall(`/players/topscorers?league=${leagueId}&season=${season}`, apiKey);
       const topScorers = (data.response || []).map(p => ({
         name: p.player.name,
         club: matchClub(p.statistics[0].team.name),
@@ -92,10 +96,7 @@ module.exports = async (req, res) => {
 
     if (type === 'calendar') {
       res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=7200');
-      const r = await fetch(`${API_BASE}/fixtures?league=${leagueId}&season=${season}`, {
-        headers: { 'x-apisports-key': apiKey }
-      });
-      const data = await r.json();
+      const data = await apiCall(`/fixtures?league=${leagueId}&season=${season}`, apiKey);
       const calendar = {};
       (data.response || []).forEach(f => {
         const roundMatch = /(\d+)\s*$/.exec(f.league.round || '');
@@ -116,10 +117,7 @@ module.exports = async (req, res) => {
     if (type === 'fixtures') {
       if (!journee) return res.status(400).json({ success: false, error: "Paramètre journee manquant" });
       res.setHeader('Cache-Control', 's-maxage=180, stale-while-revalidate=600');
-      const r = await fetch(`${API_BASE}/fixtures?league=${leagueId}&season=${season}&round=Regular Season - ${journee}`, {
-        headers: { 'x-apisports-key': apiKey }
-      });
-      const data = await r.json();
+      const data = await apiCall(`/fixtures?league=${leagueId}&season=${season}&round=Regular Season - ${journee}`, apiKey);
       const fixtures = (data.response || []).map(f => ({
         home: matchClub(f.teams.home.name),
         away: matchClub(f.teams.away.name),

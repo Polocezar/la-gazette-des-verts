@@ -4,6 +4,7 @@
 // comme rss2json), fusionne les résultats, supprime les doublons et trie par date.
 
 const cheerio = require('cheerio');
+const axios = require('axios');
 
 const FEEDS = [
   {
@@ -23,13 +24,14 @@ const FEEDS = [
 
 const TIMEOUT_MS = 6000;
 
-function fetchWithTimeout(url) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  return fetch(url, {
-    signal: controller.signal,
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GazetteDesVertsBot/1.0)' }
-  }).finally(() => clearTimeout(timer));
+async function fetchXml(url) {
+  const response = await axios.get(url, {
+    timeout: TIMEOUT_MS,
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GazetteDesVertsBot/1.0)' },
+    responseType: 'text',
+    transformResponse: [(data) => data] // évite qu'axios essaie de parser en JSON
+  });
+  return response.data;
 }
 
 // Google Actualités formate ses titres "Titre réel - Nom du média"
@@ -43,9 +45,7 @@ function extractGoogleNewsSource(rawTitle) {
 }
 
 async function parseFeed(feed) {
-  const response = await fetchWithTimeout(feed.url);
-  if (!response.ok) throw new Error(`HTTP ${response.status} sur ${feed.url}`);
-  const xml = await response.text();
+  const xml = await fetchXml(feed.url);
   const $ = cheerio.load(xml, { xmlMode: true });
 
   const items = [];
