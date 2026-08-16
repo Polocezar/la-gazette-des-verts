@@ -315,39 +315,40 @@
 
     async function loadArticles() {
       const container = document.getElementById("news-container");
-      container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.8rem;">Chargement des flux...</div>`;
-
-      // Utilisation d'un convertisseur RSS-JSON fiable
-      const rssUrl = "https://news.google.com/rss/search?q=AS+Saint-Etienne&hl=fr&gl=FR&ceid=FR:fr";
-      const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+      container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.8rem;">Chargement des articles...</div>`;
 
       try {
-        const response = await fetch(apiUrl);
+        const response = await fetch('/api/news');
         if (!response.ok) throw new Error("Erreur de réponse");
         const data = await response.json();
 
-        if (data.status === "ok" && data.items && data.items.length > 0) {
-          articlesData = data.items.map((item, index) => {
-            let rawTitle = item.title || "Article ASSE";
-            let titleParts = rawTitle.split(" - ");
-            let sourceName = titleParts.length > 1 ? titleParts.pop() : (item.author || "Presse Web");
-            let cleanTitle = titleParts.join(" - ");
-
-            return {
-              id: item.guid || item.link || `art-${index}`,
-              title: cleanTitle,
-              source: sourceName,
-              link: item.link || "https://www.envertetcontretous.fr"
-            };
-          });
+        if (data.success && data.articles && data.articles.length > 0) {
+          articlesData = data.articles.map((item, index) => ({
+            id: item.link || `art-${index}`,
+            title: item.title || "Article ASSE",
+            source: item.source || "Presse Web",
+            link: item.link,
+            pubDate: item.pubDate
+          }));
           renderArticles();
         } else {
-          throw new Error("Flux vide");
+          throw new Error("Aucun article reçu");
         }
       } catch (e) {
         console.warn("Passage aux actualités de secours :", e);
         loadFallbackNews();
       }
+    }
+
+    function formatArticleDate(iso) {
+      if (!iso) return "";
+      const d = new Date(iso);
+      if (isNaN(d)) return "";
+      const now = new Date();
+      const diffH = Math.round((now - d) / 36e5);
+      if (diffH < 1) return "à l'instant";
+      if (diffH < 24) return `il y a ${diffH} h`;
+      return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
     }
 
     function loadFallbackNews() {
@@ -373,7 +374,7 @@
       container.innerHTML = visibleArticles.map(a => `
         <div class="news-item">
           <a href="${a.link}" target="_blank">${a.title}</a>
-          <div class="news-meta">Source : ${a.source}</div>
+          <div class="news-meta">Source : ${a.source}${a.pubDate ? " · " + formatArticleDate(a.pubDate) : ""}</div>
           <span class="news-delete" onclick="deleteArticle('${encodeURIComponent(a.id)}')">×</span>
         </div>
       `).join("");
@@ -622,6 +623,8 @@
       setupSelects();
       renderMatches();
       renderStandingsAndStats();
+      // Rafraîchissement automatique des actus toutes les 10 minutes
+      setInterval(loadArticles, 10 * 60 * 1000);
     });
   </script>
 </body>
