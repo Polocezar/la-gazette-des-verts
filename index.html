@@ -303,49 +303,58 @@
     let articlesData = [];
     let deletedArticleIds = JSON.parse(localStorage.getItem("deletedArticleIds")) || [];
 
-    let topScorers = JSON.parse(localStorage.getItem("topScorers")) || [
+    // Buteurs mis à jour selon la capture d'écran exacte
+    const defaultScorers = [
       { name: "Irvin Cardona", club: "ASSE", goals: 3 },
-      { name: "Egor Prutsev", club: "Dunkerque", goals: 2 },
+      { name: "Jakob Breum", club: "ASSE", goals: 2 },
       { name: "Yadaly Diaby", club: "Grenoble", goals: 2 },
-      { name: "Yaya Kader Fofana", club: "Metz", goals: 2 },
-      { name: "Jakob Breum", club: "ASSE", goals: 1 }
+      { name: "Yaya Fofana", club: "Reims", goals: 2 },
+      { name: "Yegor Prutsev", club: "USL Dunkerque", goals: 2 }
     ];
 
-    window.handleGoogleNewsResponse = function(data) {
-      if (data && data.status === "ok" && data.items && data.items.length > 0) {
-        articlesData = data.items.slice(0, 20).map((item) => {
-          let titleParts = item.title.split(" - ");
-          let sourceName = titleParts.length > 1 ? titleParts.pop() : "Presse Web";
-          let cleanTitle = titleParts.join(" - ");
-          let link = item.link || item.guid;
-          let id = item.guid || link || cleanTitle;
-          return { id, title: cleanTitle, source: sourceName, link };
-        });
-        renderArticles();
-      } else {
-        loadFallbackNews();
-      }
-    };
+    let topScorers = JSON.parse(localStorage.getItem("topScorers")) || defaultScorers;
 
-    function loadArticles() {
+    async function loadArticles() {
       const container = document.getElementById("news-container");
       container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.8rem;">Chargement des flux...</div>`;
-      const oldScript = document.getElementById("rss-script");
-      if (oldScript) oldScript.remove();
 
-      const googleNewsUrl = "https://news.google.com/rss/search?q=AS+Saint-Etienne&hl=fr&gl=FR&ceid=FR:fr";
-      const script = document.createElement("script");
-      script.id = "rss-script";
-      script.src = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(googleNewsUrl)}&callback=handleGoogleNewsResponse&_=${Date.now()}`;
-      script.onerror = () => loadFallbackNews();
-      document.body.appendChild(script);
+      const targetUrl = "https://news.google.com/rss/search?q=AS+Saint-Etienne&hl=fr&gl=FR&ceid=FR:fr";
+      
+      try {
+        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
+        if (!response.ok) throw new Error("Erreur réseau");
+        const data = await response.json();
+        
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(data.contents, "text/xml");
+        const items = xmlDoc.querySelectorAll("item");
+
+        if (items.length === 0) throw new Error("Aucun article dans le flux");
+
+        articlesData = Array.from(items).slice(0, 20).map(item => {
+          let rawTitle = item.querySelector("title")?.textContent || "Article ASSE";
+          let link = item.querySelector("link")?.textContent || "#";
+          let guid = item.querySelector("guid")?.textContent || link || rawTitle;
+
+          let titleParts = rawTitle.split(" - ");
+          let sourceName = titleParts.length > 1 ? titleParts.pop() : "Presse Web";
+          let cleanTitle = titleParts.join(" - ");
+
+          return { id: guid, title: cleanTitle, source: sourceName, link };
+        });
+
+        renderArticles();
+      } catch (e) {
+        console.warn("Échec de chargement du flux RSS direct, passage au fallback :", e);
+        loadFallbackNews();
+      }
     }
 
     function loadFallbackNews() {
       articlesData = [
-        { id: "fallback-1", title: "ASSE 3-1 Clermont : Cardona étincelant avec 3 buts au compteur !", source: "L'Équipe", link: "https://www.lequipe.fr" },
-        { id: "fallback-2", title: "Ligue 2 : Saint-Étienne seul leader avec 6 points", source: "Evect", link: "https://www.envertetcontretous.fr" },
-        { id: "fallback-3", title: "Ligue 2 : Bilan de la 2ème journée", source: "Foot Mercato", link: "https://www.footmercato.net" }
+        { id: "fallback-1", title: "ASSE : Analyse des dernières performances des Verts", source: "Équipe web", link: "https://www.google.com/search?q=AS+Saint-Etienne" },
+        { id: "fallback-2", title: "Ligue 2 BKT : Saint-Étienne poursuit son début de saison", source: "Evect", link: "https://www.envertetcontretous.fr" },
+        { id: "fallback-3", title: "AS Saint-Étienne : Point complet sur l'effectif", source: "Foot Mercato", link: "https://www.footmercato.net" }
       ];
       renderArticles();
     }
@@ -353,7 +362,6 @@
     function renderArticles(list = articlesData) {
       const container = document.getElementById("news-container");
       
-      // Filtrer les articles supprimés
       let visibleArticles = list.filter(a => !deletedArticleIds.includes(a.id));
 
       if (!visibleArticles || visibleArticles.length === 0) {
@@ -529,19 +537,13 @@
     }
 
     function resetSeasonData() {
-      if (confirm("Voulez-vous réinitialiser tout le championnat et restaurer les articles supprimés ?")) {
+      if (confirm("Voulez-vous réinitialiser le championnat, la liste des buteurs et restaurer les articles ?")) {
         localStorage.removeItem("seasonMatches");
         localStorage.removeItem("topScorers");
         localStorage.removeItem("deletedArticleIds");
         deletedArticleIds = [];
         seasonMatches = createOfficialMatches();
-        topScorers = [
-          { name: "Irvin Cardona", club: "ASSE", goals: 3 },
-          { name: "Egor Prutsev", club: "Dunkerque", goals: 2 },
-          { name: "Yadaly Diaby", club: "Grenoble", goals: 2 },
-          { name: "Yaya Kader Fofana", club: "Metz", goals: 2 },
-          { name: "Jakob Breum", club: "ASSE", goals: 1 }
-        ];
+        topScorers = [...defaultScorers];
         currentJournee = 2;
         setupSelects();
         renderMatches();
@@ -592,7 +594,7 @@
 
       topScorers.sort((a,b) => b.goals - a.goals);
       document.getElementById("top-scorers-body").innerHTML = topScorers.slice(0, 5).map((s, i) => `
-        <tr class="${s.club === 'ASSE' ? 'highlight-asse' : ''}">
+        <tr class="${s.club === 'ASSE' || s.club === 'Saint-Étienne' ? 'highlight-asse' : ''}">
           <td>${i+1}</td>
           <td class="col-left">${s.name}</td>
           <td style="color: var(--text-muted);">${s.club}</td>
