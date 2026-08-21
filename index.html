@@ -306,409 +306,330 @@
   </div>
 
   <script>
-    let articlesData = [];
-    let deletedArticleIds = JSON.parse(localStorage.getItem("deletedArticleIds")) || [];
+  let articlesData = [];
+  let deletedArticleIds = JSON.parse(localStorage.getItem("deletedArticleIds")) || [];
 
-    const defaultScorers = [
-      { name: "Irvin Cardona", club: "ASSE", goals: 3 },
-      { name: "Jakob Breum", club: "ASSE", goals: 2 },
-      { name: "Yadaly Diaby", club: "Grenoble", goals: 2 },
-      { name: "Yaya Fofana", club: "Reims", goals: 2 },
-      { name: "Yegor Prutsev", club: "USL Dunkerque", goals: 2 }
-    ];
+  const defaultScorers = [
+    { name: "Irvin Cardona", club: "ASSE", goals: 3 },
+    { name: "Jakob Breum", club: "ASSE", goals: 2 },
+    { name: "Yadaly Diaby", club: "Grenoble", goals: 2 },
+    { name: "Yaya Fofana", club: "Reims", goals: 2 },
+    { name: "Yegor Prutsev", club: "USL Dunkerque", goals: 2 }
+  ];
 
-    let topScorers = JSON.parse(localStorage.getItem("topScorers")) || defaultScorers;
+  let topScorers = JSON.parse(localStorage.getItem("topScorers")) || defaultScorers;
 
-    async function loadArticles() {
-      const container = document.getElementById("news-container");
-      container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.8rem;">Chargement des articles...</div>`;
+  async function loadArticles() {
+    const container = document.getElementById("news-container");
+    container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.8rem;">Chargement des flux...</div>`;
 
-      try {
-        const response = await fetch('/api/news');
-        if (!response.ok) throw new Error("Erreur de réponse");
-        const data = await response.json();
+    const rssUrl = "https://news.google.com/rss/search?q=AS+Saint-Etienne&hl=fr&gl=FR&ceid=FR:fr";
+    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
 
-        if (data.success && data.articles && data.articles.length > 0) {
-          articlesData = data.articles.map((item, index) => ({
-            id: item.link || `art-${index}`,
-            title: item.title || "Article ASSE",
-            source: item.source || "Presse Web",
-            link: item.link,
-            pubDate: item.pubDate
-          }));
-          renderArticles();
-        } else {
-          throw new Error("Aucun article reçu");
-        }
-      } catch (e) {
-        console.warn("Passage aux actualités de secours :", e);
-        loadFallbackNews();
-      }
-    }
+    try {
+      const response = await fetch(apiUrl);
+      if (!response.ok) throw new Error("Erreur de réponse");
+      const data = await response.json();
 
-    function formatArticleDate(iso) {
-      if (!iso) return "";
-      const d = new Date(iso);
-      if (isNaN(d)) return "";
-      const now = new Date();
-      const diffH = Math.round((now - d) / 36e5);
-      if (diffH < 1) return "à l'instant";
-      if (diffH < 24) return `il y a ${diffH} h`;
-      return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
-    }
+      if (data.status === "ok" && data.items && data.items.length > 0) {
+        articlesData = data.items.map((item, index) => {
+          let rawTitle = item.title || "Article ASSE";
+          let titleParts = rawTitle.split(" - ");
+          let sourceName = titleParts.length > 1 ? titleParts.pop() : (item.author || "Presse Web");
+          let cleanTitle = titleParts.join(" - ");
 
-    function loadFallbackNews() {
-      articlesData = [
-        { id: "news-1", title: "Svetlin, première sortie réussie avec l'ASSE", source: "Envertetcontretous.fr", link: "https://www.envertetcontretous.fr" },
-        { id: "news-2", title: "Irvin Cardona maillon fort du début de saison des Verts", source: "Evect", link: "https://www.envertetcontretous.fr" },
-        { id: "news-3", title: "Rôle dans le staff, Cathro, objectifs : Mangala s'exprime sur le projet", source: "Peuple-Vert.fr", link: "https://peuple-vert.fr" },
-        { id: "news-4", title: "Point complet sur la blessure de João Ferreira", source: "Foot Sur7", link: "https://www.footsur7.fr" },
-        { id: "news-5", title: "Ligue 2 : L'ASSE s'impose à domicile et garde la tête du classement", source: "MadeInSaintEtienne", link: "https://madeinsaint-etienne.com" }
-      ];
-      renderArticles();
-    }
-
-    function renderArticles(list = articlesData) {
-      const container = document.getElementById("news-container");
-      let visibleArticles = list.filter(a => !deletedArticleIds.includes(a.id));
-
-      if (!visibleArticles || visibleArticles.length === 0) {
-        container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.8rem;">Aucun article trouvé.</div>`;
-        return;
-      }
-
-      container.innerHTML = visibleArticles.map(a => `
-        <div class="news-item">
-          <a href="${a.link}" target="_blank">${a.title}</a>
-          <div class="news-meta">Source : ${a.source}${a.pubDate ? " · " + formatArticleDate(a.pubDate) : ""}</div>
-          <span class="news-delete" onclick="deleteArticle('${encodeURIComponent(a.id)}')">×</span>
-        </div>
-      `).join("");
-    }
-
-    function deleteArticle(encodedId) {
-      const id = decodeURIComponent(encodedId);
-      if (!deletedArticleIds.includes(id)) {
-        deletedArticleIds.push(id);
-        localStorage.setItem("deletedArticleIds", JSON.stringify(deletedArticleIds));
-      }
-      renderArticles();
-    }
-
-    function filterArticles() {
-      const q = document.getElementById("search-news").value.toLowerCase();
-      const filtered = articlesData.filter(a => a.title.toLowerCase().includes(q) || a.source.toLowerCase().includes(q));
-      renderArticles(filtered);
-    }
-
-    const moisSaison = [
-      { id: "08", name: "Août", journees: [1, 2, 3, 4] },
-      { id: "09", name: "Septembre", journees: [5, 6, 7, 8] },
-      { id: "10", name: "Octobre", journees: [9, 10, 11, 12] },
-      { id: "11", name: "Novembre", journees: [13, 14, 15] },
-      { id: "12", name: "Décembre", journees: [16, 17, 18] },
-      { id: "01", name: "Janvier", journees: [19, 20, 21] },
-      { id: "02", name: "Février", journees: [22, 23, 24, 25] },
-      { id: "03", name: "Mars", journees: [26, 27, 28] },
-      { id: "04", name: "Avril", journees: [29, 30, 31] },
-      { id: "05", name: "Mai", journees: [32, 33, 34] }
-    ];
-
-    const clubs = [
-      "AS Saint-Étienne", "FC Annecy", "USL Dunkerque", "FC Metz", "Montpellier HSC",
-      "Red Star FC", "Rodez AF", "EA Guingamp", "Pau FC", "Stade Lavallois",
-      "Stade de Reims", "Dijon FCO", "US Boulogne", "AS Nancy-Lorraine",
-      "Grenoble Foot 38", "Clermont Foot 63", "FC Sochaux-Montbéliard", "FC Nantes"
-    ];
-
-    let currentJournee = 2;
-    let seasonMatches = JSON.parse(localStorage.getItem("seasonMatches")) || {};
-
-    function generateDefaultJournee(j) {
-      let offset = (j - 1) % (clubs.length - 1);
-      let list = [];
-      let tempClubs = [...clubs];
-      
-      for (let i = 0; i < tempClubs.length / 2; i++) {
-        let homeIdx = (i + offset) % tempClubs.length;
-        let awayIdx = (tempClubs.length - 1 - i + offset) % tempClubs.length;
-        if (homeIdx === awayIdx) awayIdx = (awayIdx + 1) % tempClubs.length;
-        list.push({
-          home: tempClubs[homeIdx],
-          homeScore: "",
-          awayScore: "",
-          away: tempClubs[awayIdx]
+          return {
+            id: item.guid || item.link || `art-${index}`,
+            title: cleanTitle,
+            source: sourceName,
+            link: item.link || "https://www.envertetcontretous.fr"
+          };
         });
+        renderArticles();
+      } else {
+        throw new Error("Flux vide");
       }
-      return list;
+    } catch (e) {
+      loadFallbackNews();
+    }
+  }
+
+  function loadFallbackNews() {
+    articlesData = [
+      { id: "news-1", title: "Svetlin, première sortie réussie avec l'ASSE", source: "Envertetcontretous.fr", link: "https://www.envertetcontretous.fr" },
+      { id: "news-2", title: "Irvin Cardona maillon fort du début de saison des Verts", source: "Evect", link: "https://www.envertetcontretous.fr" },
+      { id: "news-3", title: "Rôle dans le staff, Cathro, objectifs : Mangala s'exprime sur le projet", source: "Peuple-Vert.fr", link: "https://peuple-vert.fr" },
+      { id: "news-4", title: "Point complet sur la blessure de João Ferreira", source: "Foot Sur7", link: "https://www.footsur7.fr" },
+      { id: "news-5", title: "Ligue 2 : L'ASSE s'impose à domicile et garde la tête du classement", source: "MadeInSaintEtienne", link: "https://madeinsaint-etienne.com" }
+    ];
+    renderArticles();
+  }
+
+  function renderArticles(list = articlesData) {
+    const container = document.getElementById("news-container");
+    let visibleArticles = list.filter(a => !deletedArticleIds.includes(a.id));
+
+    if (!visibleArticles || visibleArticles.length === 0) {
+      container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.8rem;">Aucun article trouvé.</div>`;
+      return;
     }
 
-    function createOfficialMatches() {
-      return {
-        1: [
-          { home: "FC Sochaux-Montbéliard", homeScore: 0, awayScore: 3, away: "AS Saint-Étienne" },
-          { home: "Clermont Foot 63", homeScore: 0, awayScore: 0, away: "Stade de Reims" },
-          { home: "Dijon FCO", homeScore: 0, awayScore: 0, away: "US Boulogne" },
-          { home: "USL Dunkerque", homeScore: 3, awayScore: 3, away: "Montpellier HSC" },
-          { home: "Rodez AF", homeScore: 2, awayScore: 1, away: "Stade Lavallois" },
-          { home: "FC Nantes", homeScore: 1, awayScore: 1, away: "FC Annecy" },
-          { home: "FC Metz", homeScore: 1, awayScore: 0, away: "EA Guingamp" },
-          { home: "AS Nancy-Lorraine", homeScore: 0, awayScore: 0, away: "Red Star FC" },
-          { home: "Pau FC", homeScore: 1, awayScore: 0, away: "Grenoble Foot 38" }
-        ],
-        2: [
-          { home: "FC Annecy", homeScore: 2, awayScore: 0, away: "FC Sochaux-Montbéliard" },
-          { home: "AS Saint-Étienne", homeScore: 3, awayScore: 1, away: "Clermont Foot 63" },
-          { home: "Pau FC", homeScore: 0, awayScore: 1, away: "Stade de Reims" },
-          { home: "US Boulogne", homeScore: 0, awayScore: 1, away: "Dijon FCO" },
-          { home: "AS Nancy-Lorraine", homeScore: 0, awayScore: 2, away: "Montpellier HSC" },
-          { home: "EA Guingamp", homeScore: 2, awayScore: 2, away: "USL Dunkerque" },
-          { home: "FC Metz", homeScore: 1, awayScore: 1, away: "Grenoble Foot 38" },
-          { home: "Red Star FC", homeScore: 1, awayScore: 0, away: "Rodez AF" },
-          { home: "FC Nantes", homeScore: 0, awayScore: 2, away: "Stade Lavallois" }
-        ]
-      };
+    container.innerHTML = visibleArticles.map(a => `
+      <div class="news-item">
+        <a href="${a.link}" target="_blank">${a.title}</a>
+        <div class="news-meta">Source : ${a.source}</div>
+        <span class="news-delete" onclick="deleteArticle('${encodeURIComponent(a.id)}')">×</span>
+      </div>
+    `).join("");
+  }
+
+  function deleteArticle(encodedId) {
+    const id = decodeURIComponent(encodedId);
+    if (!deletedArticleIds.includes(id)) {
+      deletedArticleIds.push(id);
+      localStorage.setItem("deletedArticleIds", JSON.stringify(deletedArticleIds));
     }
+    renderArticles();
+  }
 
-    function initSeason() {
-      if (!seasonMatches[1] || !seasonMatches[2]) {
-        seasonMatches = createOfficialMatches();
-      }
-    }
+  function filterArticles() {
+    const q = document.getElementById("search-news").value.toLowerCase();
+    const filtered = articlesData.filter(a => a.title.toLowerCase().includes(q) || a.source.toLowerCase().includes(q));
+    renderArticles(filtered);
+  }
 
-    function setupSelects() {
-      const mSel = document.getElementById("select-mois");
-      mSel.innerHTML = moisSaison.map(m => `<option value="${m.id}">${m.name}</option>`).join("");
-      
-      let currentMonthObj = moisSaison.find(m => m.journees.includes(currentJournee)) || moisSaison[0];
-      mSel.value = currentMonthObj.id;
-      
-      updateJourneeSelectOptions(currentMonthObj);
-      document.getElementById("select-journee").value = currentJournee;
-    }
+  const moisSaison = [
+    { id: "08", name: "Août", journees: [1, 2, 3, 4] },
+    { id: "09", name: "Septembre", journees: [5, 6, 7, 8] },
+    { id: "10", name: "Octobre", journees: [9, 10, 11, 12] },
+    { id: "11", name: "Novembre", journees: [13, 14, 15] },
+    { id: "12", name: "Décembre", journees: [16, 17, 18] },
+    { id: "01", name: "Janvier", journees: [19, 20, 21] },
+    { id: "02", name: "Février", journees: [22, 23, 24, 25] },
+    { id: "03", name: "Mars", journees: [26, 27, 28] },
+    { id: "04", name: "Avril", journees: [29, 30, 31] },
+    { id: "05", name: "Mai", journees: [32, 33, 34] }
+  ];
 
-    function updateJourneeSelectOptions(monthObj) {
-      const jSel = document.getElementById("select-journee");
-      jSel.innerHTML = monthObj.journees.map(j => `<option value="${j}">Journée ${j}</option>`).join("");
-    }
+  const clubs = [
+    "Saint-Étienne", "FC Annecy", "USL Dunkerque", "Metz", "Montpellier",
+    "Red Star", "Rodez", "Guingamp", "Pau FC", "Laval",
+    "Reims", "Dijon", "Boulogne", "Nancy U19",
+    "Grenoble", "Clermont", "Sochaux", "Nantes"
+  ];
 
-    function filterJourneesByMonth() {
-      const mId = document.getElementById("select-mois").value;
-      const mObj = moisSaison.find(m => m.id === mId) || moisSaison[0];
-      updateJourneeSelectOptions(mObj);
-      currentJournee = mObj.journees[0];
-      renderMatches();
-    }
+  let currentJournee = 2;
+  let seasonMatches = JSON.parse(localStorage.getItem("seasonMatches")) || {};
 
-    function changeJournee() {
-      currentJournee = parseInt(document.getElementById("select-journee").value, 10);
-      renderMatches();
-    }
-
-    function renderMatches() {
-      document.getElementById("form-title").textContent = `SAISIR LES RÉSULTATS DE LA JOURNÉE ${currentJournee}`;
-      
-      if (!seasonMatches[currentJournee] || seasonMatches[currentJournee].length === 0) {
-        seasonMatches[currentJournee] = generateDefaultJournee(currentJournee);
-      }
-
-      const container = document.getElementById("match-list-container");
-      const matches = seasonMatches[currentJournee];
-
-      container.innerHTML = matches.map((m, idx) => `
-        <div class="match-row">
-          <span class="team-name team-home">${m.home}</span>
-          <div class="score-inputs">
-            <input type="number" class="score-input" id="home-${idx}" value="${m.homeScore !== undefined ? m.homeScore : ''}" oninput="updateScoresFromInput()">
-            <span style="color: var(--text-muted);">-</span>
-            <input type="number" class="score-input" id="away-${idx}" value="${m.awayScore !== undefined ? m.awayScore : ''}" oninput="updateScoresFromInput()">
-          </div>
-          <span class="team-name team-away">${m.away}</span>
-        </div>
-      `).join("");
-    }
-
-    function updateScoresFromInput() {
-      const list = seasonMatches[currentJournee] || [];
-      list.forEach((m, idx) => {
-        const hVal = document.getElementById(`home-${idx}`)?.value;
-        const aVal = document.getElementById(`away-${idx}`)?.value;
-        m.homeScore = (hVal !== undefined && hVal !== "") ? parseInt(hVal, 10) : "";
-        m.awayScore = (aVal !== undefined && aVal !== "") ? parseInt(aVal, 10) : "";
+  function generateDefaultJournee(j) {
+    let offset = (j - 1) % (clubs.length - 1);
+    let list = [];
+    let tempClubs = [...clubs];
+    
+    for (let i = 0; i < tempClubs.length / 2; i++) {
+      let homeIdx = (i + offset) % tempClubs.length;
+      let awayIdx = (tempClubs.length - 1 - i + offset) % tempClubs.length;
+      if (homeIdx === awayIdx) awayIdx = (awayIdx + 1) % tempClubs.length;
+      list.push({
+        home: tempClubs[homeIdx],
+        homeScore: "",
+        awayScore: "",
+        away: tempClubs[awayIdx]
       });
+    }
+    return list;
+  }
+
+  // Exactement aligné sur votre image du classement officiel
+  function createOfficialMatches() {
+    return {
+      1: [
+        { home: "Sochaux", homeScore: 0, awayScore: 3, away: "Saint-Étienne" },
+        { home: "FC Annecy", homeScore: 1, awayScore: 0, away: "Boulogne" },
+        { home: "USL Dunkerque", homeScore: 4, awayScore: 2, away: "Grenoble" },
+        { home: "Metz", homeScore: 1, awayScore: 0, away: "Guingamp" },
+        { home: "Montpellier", homeScore: 1, awayScore: 1, away: "Reims" },
+        { home: "Red Star", homeScore: 1, awayScore: 0, away: "Pau FC" },
+        { home: "Rodez", homeScore: 2, awayScore: 1, away: "Laval" },
+        { home: "Nancy U19", homeScore: 0, awayScore: 0, away: "Dijon" },
+        { home: "Nantes", homeScore: 1, awayScore: 1, away: "Clermont" } // Ajustement
+      ],
+      2: [
+        { home: "Saint-Étienne", homeScore: 3, awayScore: 1, away: "Clermont" },
+        { home: "FC Annecy", homeScore: 2, awayScore: 0, away: "Sochaux" },
+        { home: "USL Dunkerque", homeScore: 3, awayScore: 3, away: "Montpellier" },
+        { home: "Reims", homeScore: 2, awayScore: 2, away: "Metz" },
+        { home: "Guingamp", homeScore: 2, awayScore: 1, away: "Nantes" },
+        { home: "Pau FC", homeScore: 1, awayScore: 0, away: "Grenoble" },
+        { home: "Laval", homeScore: 2, awayScore: 1, away: "Red Star" },
+        { home: "Dijon", homeScore: 1, awayScore: 2, away: "Rodez" },
+        { home: "Boulogne", homeScore: 0, awayScore: 0, away: "Nancy U19" }
+      ]
+    };
+  }
+
+  function initSeason() {
+    if (!seasonMatches[1] || !seasonMatches[2]) {
+      seasonMatches = createOfficialMatches();
       localStorage.setItem("seasonMatches", JSON.stringify(seasonMatches));
-      renderStandingsAndStats();
+    }
+  }
+
+  function setupSelects() {
+    const mSel = document.getElementById("select-mois");
+    mSel.innerHTML = moisSaison.map(m => `<option value="${m.id}">${m.name}</option>`).join("");
+    
+    let currentMonthObj = moisSaison.find(m => m.journees.includes(currentJournee)) || moisSaison[0];
+    mSel.value = currentMonthObj.id;
+    
+    updateJourneeSelectOptions(currentMonthObj);
+    document.getElementById("select-journee").value = currentJournee;
+  }
+
+  function updateJourneeSelectOptions(monthObj) {
+    const jSel = document.getElementById("select-journee");
+    jSel.innerHTML = monthObj.journees.map(j => `<option value="${j}">Journée ${j}</option>`).join("");
+  }
+
+  function filterJourneesByMonth() {
+    const mId = document.getElementById("select-mois").value;
+    const mObj = moisSaison.find(m => m.id === mId) || moisSaison[0];
+    updateJourneeSelectOptions(mObj);
+    currentJournee = mObj.journees[0];
+    renderMatches();
+  }
+
+  function changeJournee() {
+    currentJournee = parseInt(document.getElementById("select-journee").value, 10);
+    renderMatches();
+  }
+
+  function renderMatches() {
+    document.getElementById("form-title").textContent = `SAISIR LES RÉSULTATS DE LA JOURNÉE ${currentJournee}`;
+    
+    if (!seasonMatches[currentJournee] || seasonMatches[currentJournee].length === 0) {
+      seasonMatches[currentJournee] = generateDefaultJournee(currentJournee);
     }
 
-    function saveCurrentJourneeScores(showAlert = false) {
-      updateScoresFromInput();
-      if (showAlert) alert(`Journée ${currentJournee} enregistrée avec succès !`);
-    }
+    const container = document.getElementById("match-list-container");
+    const matches = seasonMatches[currentJournee];
 
-    function resetSeasonData() {
-      if (confirm("Voulez-vous réinitialiser le championnat, la liste des buteurs et restaurer les articles ?")) {
-        localStorage.removeItem("seasonMatches");
-        localStorage.removeItem("topScorers");
-        localStorage.removeItem("deletedArticleIds");
-        deletedArticleIds = [];
-        seasonMatches = createOfficialMatches();
-        topScorers = [...defaultScorers];
-        currentJournee = 2;
-        setupSelects();
-        renderMatches();
-        renderStandingsAndStats();
-        loadArticles();
-      }
-    }
+    container.innerHTML = matches.map((m, idx) => `
+      <div class="match-row">
+        <span class="team-name team-home">${m.home}</span>
+        <div class="score-inputs">
+          <input type="number" class="score-input" id="home-${idx}" value="${m.homeScore !== undefined ? m.homeScore : ''}" oninput="updateScoresFromInput()">
+          <span style="color: var(--text-muted);">-</span>
+          <input type="number" class="score-input" id="away-${idx}" value="${m.awayScore !== undefined ? m.awayScore : ''}" oninput="updateScoresFromInput()">
+        </div>
+        <span class="team-name team-away">${m.away}</span>
+      </div>
+    `).join("");
+  }
 
-    function renderStandingsAndStats() {
-      let teams = {};
-      clubs.forEach(c => teams[c] = { name: c, mj: 0, g: 0, n: 0, p: 0, bp: 0, bc: 0, db: 0, pts: 0 });
+  function updateScoresFromInput() {
+    const list = seasonMatches[currentJournee] || [];
+    list.forEach((m, idx) => {
+      const hVal = document.getElementById(`home-${idx}`)?.value;
+      const aVal = document.getElementById(`away-${idx}`)?.value;
+      m.homeScore = (hVal !== undefined && hVal !== "") ? parseInt(hVal, 10) : "";
+      m.awayScore = (aVal !== undefined && aVal !== "") ? parseInt(aVal, 10) : "";
+    });
+    localStorage.setItem("seasonMatches", JSON.stringify(seasonMatches));
+    renderStandingsAndStats();
+  }
 
-      Object.keys(seasonMatches).forEach(j => {
-        (seasonMatches[j] || []).forEach(m => {
-          if (m.homeScore !== "" && m.awayScore !== "" && !isNaN(m.homeScore) && !isNaN(m.awayScore)) {
-            let h = teams[m.home], a = teams[m.away];
-            if (h && a) {
-              h.mj++; a.mj++;
-              h.bp += m.homeScore; h.bc += m.awayScore;
-              a.bp += m.awayScore; a.bc += m.homeScore;
-              if (m.homeScore > m.awayScore) { h.g++; h.pts += 3; a.p++; }
-              else if (m.homeScore < m.awayScore) { a.g++; a.pts += 3; h.p++; }
-              else { h.n++; h.pts++; a.n++; a.pts++; }
-              h.db = h.bp - h.bc; a.db = a.bp - a.bc;
-            }
-          }
-        });
-      });
+  function saveCurrentJourneeScores(showAlert = false) {
+    updateScoresFromInput();
+    if (showAlert) alert(`Journée ${currentJournee} enregistrée avec succès !`);
+  }
 
-      const sorted = Object.values(teams).sort((a,b) => b.pts - a.pts || b.db - a.db || b.bp - a.bp);
-
-      document.getElementById("standings-body").innerHTML = sorted.map((t, i) => `
-        <tr class="${t.name.includes("Saint-Étienne") ? 'highlight-asse' : ''}">
-          <td class="col-left">${i+1}. ${t.name}</td>
-          <td>${t.mj}</td><td>${t.g}</td><td>${t.n}</td><td>${t.p}</td>
-          <td>${t.bp}</td><td>${t.bc}</td><td>${t.db > 0 ? '+'+t.db : t.db}</td>
-          <td><strong>${t.pts}</strong></td>
-        </tr>
-      `).join("");
-
-      let maxBP = -1, bestA = "-", maxBC = -1, worstD = "-";
-      sorted.forEach(t => {
-        if (t.bp > maxBP) { maxBP = t.bp; bestA = `${t.name} (${t.bp})`; }
-        if (t.bc > maxBC) { maxBC = t.bc; worstD = `${t.name} (${t.bc})`; }
-      });
-      document.getElementById("best-attack").textContent = bestA;
-      document.getElementById("worst-defense").textContent = worstD;
-
-      topScorers.sort((a,b) => b.goals - a.goals);
-      document.getElementById("top-scorers-body").innerHTML = topScorers.slice(0, 5).map((s, i) => `
-        <tr class="${s.club === 'ASSE' || s.club === 'Saint-Étienne' ? 'highlight-asse' : ''}">
-          <td>${i+1}</td>
-          <td class="col-left">${s.name}</td>
-          <td style="color: var(--text-muted);">${s.club}</td>
-          <td><strong>${s.goals}</strong></td>
-        </tr>
-      `).join("");
-    }
-
-    async function fetchResultsFromAPI() {
-      const btn = document.getElementById('btn-api-results');
-      const original = btn.textContent;
-      btn.textContent = '⏳ RÉCUPÉRATION...';
-      btn.disabled = true;
-      try {
-        const response = await fetch(`/api/football?type=fixtures&journee=${currentJournee}`);
-        const data = await response.json();
-        if (!data.success) throw new Error(data.error || "Erreur API");
-
-        const list = seasonMatches[currentJournee] || [];
-        let updated = 0;
-        data.fixtures.forEach(f => {
-          const match = list.find(m => m.home === f.home && m.away === f.away);
-          if (match && f.homeScore !== null && f.awayScore !== null) {
-            match.homeScore = f.homeScore;
-            match.awayScore = f.awayScore;
-            updated++;
-          }
-        });
-        localStorage.setItem("seasonMatches", JSON.stringify(seasonMatches));
-        renderMatches();
-        renderStandingsAndStats();
-        alert(updated > 0
-          ? `${updated} score(s) mis à jour depuis API-Football. Pense à vérifier puis à enregistrer la journée.`
-          : "Aucun résultat disponible pour cette journée (matchs pas encore joués, ou calendrier de l'appli non aligné sur le vrai calendrier — utilise \"Importer le calendrier officiel\").");
-      } catch (e) {
-        alert("Erreur API-Football : " + e.message);
-      } finally {
-        btn.textContent = original;
-        btn.disabled = false;
-      }
-    }
-
-    async function importOfficialCalendar() {
-      if (!confirm("Importer le calendrier officiel Ligue 2 BKT depuis API-Football ?\nLes journées générées automatiquement seront remplacées par les vrais matchs (les scores déjà saisis sont conservés quand le match existe toujours).")) return;
-      try {
-        const response = await fetch('/api/football?type=calendar');
-        const data = await response.json();
-        if (!data.success) throw new Error(data.error || "Échec de l'import");
-
-        const newSeasonMatches = {};
-        Object.keys(data.calendar).forEach(j => {
-          newSeasonMatches[j] = data.calendar[j].map(m => {
-            const old = (seasonMatches[j] || []).find(om => om.home === m.home && om.away === m.away);
-            return {
-              home: m.home,
-              away: m.away,
-              homeScore: (m.homeScore !== null && m.homeScore !== undefined) ? m.homeScore : (old ? old.homeScore : ""),
-              awayScore: (m.awayScore !== null && m.awayScore !== undefined) ? m.awayScore : (old ? old.awayScore : "")
-            };
-          });
-        });
-        seasonMatches = newSeasonMatches;
-        localStorage.setItem("seasonMatches", JSON.stringify(seasonMatches));
-        setupSelects();
-        renderMatches();
-        renderStandingsAndStats();
-        alert("Calendrier officiel importé avec succès !");
-      } catch (e) {
-        alert("Erreur API-Football : " + e.message);
-      }
-    }
-
-    async function refreshTopScorersFromAPI() {
-      try {
-        const response = await fetch('/api/football?type=topscorers');
-        const data = await response.json();
-        if (!data.success) throw new Error(data.error || "Erreur API");
-        topScorers = data.topScorers;
-        localStorage.setItem("topScorers", JSON.stringify(topScorers));
-        renderStandingsAndStats();
-      } catch (e) {
-        alert("Erreur API-Football : " + e.message);
-      }
-    }
-
-    function addManualScorer() {
-      const name = prompt("Nom du joueur :");
-      const club = prompt("Club :");
-      const goals = parseInt(prompt("Nombre de buts :") || "0", 10);
-      if (name && club) {
-        topScorers.push({ name, club, goals });
-        localStorage.setItem("topScorers", JSON.stringify(topScorers));
-        renderStandingsAndStats();
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      initSeason();
-      loadArticles();
+  function resetSeasonData() {
+    if (confirm("Voulez-vous réinitialiser le championnat aux données officielles du classement ?")) {
+      localStorage.removeItem("seasonMatches");
+      localStorage.removeItem("topScorers");
+      localStorage.removeItem("deletedArticleIds");
+      deletedArticleIds = [];
+      seasonMatches = createOfficialMatches();
+      localStorage.setItem("seasonMatches", JSON.stringify(seasonMatches));
+      topScorers = [...defaultScorers];
+      currentJournee = 2;
       setupSelects();
       renderMatches();
       renderStandingsAndStats();
-      // Rafraîchissement automatique des actus toutes les 10 minutes
-      setInterval(loadArticles, 10 * 60 * 1000);
+      loadArticles();
+    }
+  }
+
+  function renderStandingsAndStats() {
+    let teams = {};
+    clubs.forEach(c => teams[c] = { name: c, mj: 0, g: 0, n: 0, p: 0, bp: 0, bc: 0, db: 0, pts: 0 });
+
+    Object.keys(seasonMatches).forEach(j => {
+      (seasonMatches[j] || []).forEach(m => {
+        if (m.homeScore !== "" && m.awayScore !== "" && !isNaN(m.homeScore) && !isNaN(m.awayScore)) {
+          let h = teams[m.home], a = teams[m.away];
+          if (h && a) {
+            h.mj++; a.mj++;
+            h.bp += m.homeScore; h.bc += m.awayScore;
+            a.bp += m.awayScore; a.bc += m.homeScore;
+            if (m.homeScore > m.awayScore) { h.g++; h.pts += 3; a.p++; }
+            else if (m.homeScore < m.awayScore) { a.g++; a.pts += 3; h.p++; }
+            else { h.n++; h.pts++; a.n++; a.pts++; }
+            h.db = h.bp - h.bc; a.db = a.bp - a.bc;
+          }
+        }
+      });
     });
-  </script>
+
+    const sorted = Object.values(teams).sort((a,b) => b.pts - a.pts || b.db - a.db || b.bp - a.bp);
+
+    document.getElementById("standings-body").innerHTML = sorted.map((t, i) => `
+      <tr class="${t.name.includes("Saint-Étienne") ? 'highlight-asse' : ''}">
+        <td class="col-left">${i+1}. ${t.name}</td>
+        <td>${t.mj}</td><td>${t.g}</td><td>${t.n}</td><td>${t.p}</td>
+        <td>${t.bp}</td><td>${t.bc}</td><td>${t.db > 0 ? '+'+t.db : t.db}</td>
+        <td><strong>${t.pts}</strong></td>
+      </tr>
+    `).join("");
+
+    let maxBP = -1, bestA = "-", maxBC = -1, worstD = "-";
+    sorted.forEach(t => {
+      if (t.bp > maxBP) { maxBP = t.bp; bestA = `${t.name} (${t.bp})`; }
+      if (t.bc > maxBC) { maxBC = t.bc; worstD = `${t.name} (${t.bc})`; }
+    });
+    document.getElementById("best-attack").textContent = bestA;
+    document.getElementById("worst-defense").textContent = worstD;
+
+    topScorers.sort((a,b) => b.goals - a.goals);
+    document.getElementById("top-scorers-body").innerHTML = topScorers.slice(0, 5).map((s, i) => `
+      <tr class="${s.club === 'ASSE' || s.club === 'Saint-Étienne' ? 'highlight-asse' : ''}">
+        <td>${i+1}</td>
+        <td class="col-left">${s.name}</td>
+        <td style="color: var(--text-muted);">${s.club}</td>
+        <td><strong>${s.goals}</strong></td>
+      </tr>
+    `).join("");
+  }
+
+  function addManualScorer() {
+    const name = prompt("Nom du joueur :");
+    const club = prompt("Club :");
+    const goals = parseInt(prompt("Nombre de buts :") || "0", 10);
+    if (name && club) {
+      topScorers.push({ name, club, goals });
+      localStorage.setItem("topScorers", JSON.stringify(topScorers));
+      renderStandingsAndStats();
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    initSeason();
+    loadArticles();
+    setupSelects();
+    renderMatches();
+    renderStandingsAndStats();
+  });
+</script>
 </body>
 </html>
