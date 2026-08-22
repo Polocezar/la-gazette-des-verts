@@ -501,6 +501,22 @@
       if (!seasonMatches[1] || !seasonMatches[2]) {
         seasonMatches = createOfficialMatches();
       }
+      currentJournee = findNextJourneeToPlay();
+    }
+
+    // Trouve la première journée qui n'a pas encore tous ses scores saisis
+    function findNextJourneeToPlay() {
+      const maxJournee = moisSaison.reduce((max, m) => Math.max(max, ...m.journees), 1);
+      for (let j = 1; j <= maxJournee; j++) {
+        const matches = seasonMatches[j];
+        if (!matches || matches.length === 0) return j;
+        const complete = matches.every(m =>
+          m.homeScore !== "" && m.homeScore !== undefined && m.homeScore !== null &&
+          m.awayScore !== "" && m.awayScore !== undefined && m.awayScore !== null
+        );
+        if (!complete) return j;
+      }
+      return maxJournee; // tout est complet, on reste sur la dernière
     }
 
     function setupSelects() {
