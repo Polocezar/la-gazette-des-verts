@@ -460,6 +460,39 @@
           { home: "FC Metz", homeScore: 1, awayScore: 1, away: "Grenoble Foot 38" },
           { home: "Red Star FC", homeScore: 1, awayScore: 0, away: "Rodez AF" },
           { home: "FC Nantes", homeScore: 0, awayScore: 2, away: "Stade Lavallois" }
+        ],
+        3: [
+          { home: "USL Dunkerque", homeScore: 0, awayScore: 1, away: "Montpellier HSC" },
+          { home: "Pau FC", homeScore: 0, awayScore: 1, away: "AS Nancy-Lorraine" },
+          { home: "Clermont Foot 63", homeScore: 1, awayScore: 1, away: "Dijon FCO" },
+          { home: "FC Sochaux-Montbéliard", homeScore: 1, awayScore: 0, away: "EA Guingamp" },
+          { home: "US Boulogne", homeScore: 1, awayScore: 1, away: "Red Star FC" },
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "Stade Lavallois" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "Rodez AF" },
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "FC Annecy" }
+        ],
+        4: [
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "Pau FC" },
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "USL Dunkerque" },
+          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "FC Metz" },
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "FC Nantes" },
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "AS Saint-Étienne" }
+        ],
+        5: [
+          { home: "US Boulogne", homeScore: "", awayScore: "", away: "Dijon FCO" },
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "FC Annecy" },
+          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "Red Star FC" },
+          { home: "Pau FC", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "EA Guingamp" },
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "Rodez AF" },
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "Montpellier HSC" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" }
         ]
       };
     }
@@ -510,14 +543,20 @@
       const matches = seasonMatches[currentJournee];
 
       container.innerHTML = matches.map((m, idx) => `
-        <div class="match-row">
-          <span class="team-name team-home">${m.home}</span>
-          <div class="score-inputs">
-            <input type="number" class="score-input" id="home-${idx}" value="${m.homeScore !== undefined ? m.homeScore : ''}" oninput="updateScoresFromInput()">
-            <span style="color: var(--text-muted);">-</span>
-            <input type="number" class="score-input" id="away-${idx}" value="${m.awayScore !== undefined ? m.awayScore : ''}" oninput="updateScoresFromInput()">
+        <div class="match-row" style="flex-direction: column; align-items: stretch; gap: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span class="team-name team-home">${m.home}</span>
+            <div class="score-inputs">
+              <input type="number" class="score-input" id="home-${idx}" value="${m.homeScore !== undefined ? m.homeScore : ''}" oninput="updateScoresFromInput()">
+              <span style="color: var(--text-muted);">-</span>
+              <input type="number" class="score-input" id="away-${idx}" value="${m.awayScore !== undefined ? m.awayScore : ''}" oninput="updateScoresFromInput()">
+            </div>
+            <span class="team-name team-away">${m.away}</span>
           </div>
-          <span class="team-name team-away">${m.away}</span>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" placeholder="Buteurs ${m.home} (ex: Cardona, Cardona, Breum)" id="scorers-home-${idx}" value="${m.homeScorers || ''}" oninput="updateScoresFromInput()" style="flex: 1; background: #0d0d0d; border: 1px solid var(--card-border); color: var(--text-light); border-radius: 6px; padding: 6px 8px; font-size: 0.75rem;">
+            <input type="text" placeholder="Buteurs ${m.away} (ex: Diaby x2)" id="scorers-away-${idx}" value="${m.awayScorers || ''}" oninput="updateScoresFromInput()" style="flex: 1; background: #0d0d0d; border: 1px solid var(--card-border); color: var(--text-light); border-radius: 6px; padding: 6px 8px; font-size: 0.75rem;">
+          </div>
         </div>
       `).join("");
     }
@@ -529,9 +568,62 @@
         const aVal = document.getElementById(`away-${idx}`)?.value;
         m.homeScore = (hVal !== undefined && hVal !== "") ? parseInt(hVal, 10) : "";
         m.awayScore = (aVal !== undefined && aVal !== "") ? parseInt(aVal, 10) : "";
+        m.homeScorers = document.getElementById(`scorers-home-${idx}`)?.value || "";
+        m.awayScorers = document.getElementById(`scorers-away-${idx}`)?.value || "";
       });
       localStorage.setItem("seasonMatches", JSON.stringify(seasonMatches));
+      recomputeTopScorersFromMatches();
       renderStandingsAndStats();
+    }
+
+    // Parse un champ "Cardona, Cardona, Breum" ou "Cardona x2, Breum" en {nom: buts}
+    function parseScorersField(text) {
+      const tally = {};
+      if (!text) return tally;
+      text.split(",").forEach(token => {
+        token = token.trim();
+        if (!token) return;
+        const xMatch = token.match(/^(.+?)\s*x\s*(\d+)$/i);
+        let name, count;
+        if (xMatch) {
+          name = xMatch[1].trim();
+          count = parseInt(xMatch[2], 10);
+        } else {
+          name = token;
+          count = 1;
+        }
+        if (name) tally[name] = (tally[name] || 0) + count;
+      });
+      return tally;
+    }
+
+    // Reconstruit topScorers à partir des champs buteurs saisis sur tous les matchs de la saison
+    function recomputeTopScorersFromMatches() {
+      const totals = {}; // key = "Nom||Club"
+      Object.keys(seasonMatches).forEach(j => {
+        (seasonMatches[j] || []).forEach(m => {
+          const homeTally = parseScorersField(m.homeScorers);
+          Object.keys(homeTally).forEach(name => {
+            const key = name + "||" + m.home;
+            totals[key] = (totals[key] || 0) + homeTally[name];
+          });
+          const awayTally = parseScorersField(m.awayScorers);
+          Object.keys(awayTally).forEach(name => {
+            const key = name + "||" + m.away;
+            totals[key] = (totals[key] || 0) + awayTally[name];
+          });
+        });
+      });
+
+      const fromMatches = Object.keys(totals).map(key => {
+        const [name, club] = key.split("||");
+        return { name, club, goals: totals[key] };
+      });
+
+      if (fromMatches.length > 0) {
+        topScorers = fromMatches;
+        localStorage.setItem("topScorers", JSON.stringify(topScorers));
+      }
     }
 
     function saveCurrentJourneeScores(showAlert = false) {
