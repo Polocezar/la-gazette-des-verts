@@ -83,6 +83,33 @@ module.exports = async (req, res) => {
   try {
     const { id: leagueId, season } = await resolveLeague(apiKey);
 
+    if (type === 'debug') {
+      const r = await apiCall(`/leagues?name=Ligue 2&country=France`, apiKey);
+      const league = r.response && r.response[0];
+      const allSeasons = league ? league.seasons.map(s => ({ year: s.year, current: s.current, start: s.start, end: s.end })) : [];
+
+      const fixturesRaw = await apiCall(`/fixtures?league=${leagueId}&season=${season}`, apiKey);
+      const sampleRounds = (fixturesRaw.response || []).slice(0, 5).map(f => ({
+        round: f.league.round,
+        home: f.teams.home.name,
+        away: f.teams.away.name,
+        date: f.fixture.date,
+        status: f.fixture.status.short
+      }));
+
+      return res.status(200).json({
+        success: true,
+        resolvedLeagueId: leagueId,
+        resolvedSeason: season,
+        leagueNameFound: league ? league.league.name : null,
+        countryFound: league ? league.country.name : null,
+        allAvailableSeasons: allSeasons,
+        totalFixturesReturned: (fixturesRaw.response || []).length,
+        fixturesApiErrors: fixturesRaw.errors,
+        sampleRounds
+      });
+    }
+
     if (type === 'topscorers') {
       res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
       const data = await apiCall(`/players/topscorers?league=${leagueId}&season=${season}`, apiKey);
