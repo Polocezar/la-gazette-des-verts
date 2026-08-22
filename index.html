@@ -597,33 +597,60 @@
       return tally;
     }
 
-    // Reconstruit topScorers à partir des champs buteurs saisis sur tous les matchs de la saison
+    // Reconstruit topScorers en ajoutant les buteurs saisis match par match
+    // par-dessus une base figée (les vrais totaux déjà connus avant l'automatisation),
+    // sans jamais perdre ces totaux de départ.
     function recomputeTopScorersFromMatches() {
-      const totals = {}; // key = "Nom||Club"
+      const totals = {}; // key = nom (en minuscules) -> { name, club, goals }
       Object.keys(seasonMatches).forEach(j => {
         (seasonMatches[j] || []).forEach(m => {
           const homeTally = parseScorersField(m.homeScorers);
           Object.keys(homeTally).forEach(name => {
-            const key = name + "||" + m.home;
-            totals[key] = (totals[key] || 0) + homeTally[name];
+            const key = name.trim().toLowerCase();
+            if (!totals[key]) totals[key] = { name: name.trim(), club: m.home, goals: 0 };
+            totals[key].goals += homeTally[name];
           });
           const awayTally = parseScorersField(m.awayScorers);
           Object.keys(awayTally).forEach(name => {
-            const key = name + "||" + m.away;
-            totals[key] = (totals[key] || 0) + awayTally[name];
+            const key = name.trim().toLowerCase();
+            if (!totals[key]) totals[key] = { name: name.trim(), club: m.away, goals: 0 };
+            totals[key].goals += awayTally[name];
           });
         });
       });
 
-      const fromMatches = Object.keys(totals).map(key => {
-        const [name, club] = key.split("||");
-        return { name, club, goals: totals[key] };
+      if (Object.keys(totals).length === 0) return; // rien saisi via les matchs, on ne touche à rien
+
+      // Base figée une seule fois : les vrais totaux connus avant la saisie match par match
+      let baseline = JSON.parse(localStorage.getItem("scorersBaseline") || "null");
+      if (!baseline) {
+        baseline = topScorers.map(s => ({ ...s }));
+        localStorage.setItem("scorersBaseline", JSON.stringify(baseline));
+      }
+
+      const merged = baseline.map(s => ({ ...s }));
+
+      function namesMatch(typed, full) {
+        const t = typed.trim().toLowerCase();
+        const f = full.trim().toLowerCase();
+        if (t === f) return true;
+        const fParts = f.split(/\s+/);
+        return fParts.includes(t) || t === fParts[fParts.length - 1];
+      }
+
+      Object.keys(totals).forEach(key => {
+        const t = totals[key];
+        const existing = merged.find(s => namesMatch(t.name, s.name));
+        if (existing) {
+          const baseEntry = baseline.find(s => namesMatch(t.name, s.name));
+          existing.goals = (baseEntry?.goals || 0) + t.goals;
+        } else {
+          merged.push({ name: t.name, club: t.club, goals: t.goals });
+        }
       });
 
-      if (fromMatches.length > 0) {
-        topScorers = fromMatches;
-        localStorage.setItem("topScorers", JSON.stringify(topScorers));
-      }
+      topScorers = merged;
+      localStorage.setItem("topScorers", JSON.stringify(topScorers));
     }
 
     function saveCurrentJourneeScores(showAlert = false) {
@@ -635,6 +662,7 @@
       if (confirm("Voulez-vous réinitialiser le championnat, la liste des buteurs et restaurer les articles ?")) {
         localStorage.removeItem("seasonMatches");
         localStorage.removeItem("topScorers");
+        localStorage.removeItem("scorersBaseline");
         localStorage.removeItem("deletedArticleIds");
         deletedArticleIds = [];
         seasonMatches = createOfficialMatches();
