@@ -440,26 +440,26 @@
     function createOfficialMatches() {
       return {
         1: [
-          { home: "FC Sochaux-Montbéliard", homeScore: 0, awayScore: 3, away: "AS Saint-Étienne" },
           { home: "Clermont Foot 63", homeScore: 0, awayScore: 0, away: "Stade de Reims" },
-          { home: "Dijon FCO", homeScore: 0, awayScore: 0, away: "US Boulogne" },
-          { home: "USL Dunkerque", homeScore: 3, awayScore: 3, away: "Montpellier HSC" },
-          { home: "Rodez AF", homeScore: 2, awayScore: 1, away: "Stade Lavallois" },
-          { home: "FC Nantes", homeScore: 1, awayScore: 1, away: "FC Annecy" },
-          { home: "FC Metz", homeScore: 1, awayScore: 0, away: "EA Guingamp" },
-          { home: "AS Nancy-Lorraine", homeScore: 0, awayScore: 0, away: "Red Star FC" },
-          { home: "Pau FC", homeScore: 1, awayScore: 0, away: "Grenoble Foot 38" }
+          { home: "FC Metz", homeScore: 2, awayScore: 1, away: "EA Guingamp", homeScorers: "P. Fall, G. Abuashvili", awayScorers: "A. Démouchy" },
+          { home: "FC Nantes", homeScore: 0, awayScore: 1, away: "Red Star FC", awayScorers: "K. Cabral" },
+          { home: "Rodez AF", homeScore: 3, awayScore: 1, away: "Stade Lavallois", homeScorers: "C. Issanchou, I. Baldé, O. Joly", awayScorers: "E. Clavreul" },
+          { home: "FC Sochaux-Montbéliard", homeScore: 0, awayScore: 3, away: "AS Saint-Étienne", awayScorers: "J. Breum, I. Cardona x2" },
+          { home: "Pau FC", homeScore: 0, awayScore: 1, away: "FC Annecy", awayScorers: "A. Drouhin" },
+          { home: "USL Dunkerque", homeScore: 4, awayScore: 2, away: "Grenoble Foot 38", homeScorers: "V. Mayela, M. Decherf, E. Prutsev x2", awayScorers: "Y. Diaby x2" },
+          { home: "US Boulogne", homeScore: 0, awayScore: 0, away: "AS Nancy-Lorraine" },
+          { home: "Montpellier HSC", homeScore: 1, awayScore: 1, away: "Dijon FCO", homeScorers: "L. Megnan Pave", awayScorers: "A. Lembezat" }
         ],
         2: [
-          { home: "FC Annecy", homeScore: 2, awayScore: 0, away: "FC Sochaux-Montbéliard" },
-          { home: "AS Saint-Étienne", homeScore: 3, awayScore: 1, away: "Clermont Foot 63" },
-          { home: "Pau FC", homeScore: 0, awayScore: 1, away: "Stade de Reims" },
-          { home: "US Boulogne", homeScore: 0, awayScore: 1, away: "Dijon FCO" },
-          { home: "AS Nancy-Lorraine", homeScore: 0, awayScore: 2, away: "Montpellier HSC" },
-          { home: "EA Guingamp", homeScore: 2, awayScore: 2, away: "USL Dunkerque" },
-          { home: "FC Metz", homeScore: 1, awayScore: 1, away: "Grenoble Foot 38" },
-          { home: "Red Star FC", homeScore: 1, awayScore: 0, away: "Rodez AF" },
-          { home: "FC Nantes", homeScore: 0, awayScore: 2, away: "Stade Lavallois" }
+          { home: "AS Nancy-Lorraine", homeScore: 0, awayScore: 1, away: "Montpellier HSC", awayScorers: "Y. Issoufou" },
+          { home: "Dijon FCO", homeScore: 0, awayScore: 1, away: "Pau FC", awayScorers: "B. Leye" },
+          { home: "Grenoble Foot 38", homeScore: 0, awayScore: 0, away: "FC Metz" },
+          { home: "EA Guingamp", homeScore: 1, awayScore: 0, away: "US Boulogne", homeScorers: "S. Kielt" },
+          { home: "Stade de Reims", homeScore: 3, awayScore: 3, away: "USL Dunkerque", homeScorers: "A. Tia, Y. Fofana x2", awayScorers: "A. Lebeau, S. Keita, T. Robinet" },
+          { home: "Stade Lavallois", homeScore: 2, awayScore: 1, away: "FC Nantes", homeScorers: "T. Dago, M. Houdayer", awayScorers: "H. Guirassy" },
+          { home: "Red Star FC", homeScore: 0, awayScore: 0, away: "FC Sochaux-Montbéliard" },
+          { home: "FC Annecy", homeScore: 2, awayScore: 0, away: "Rodez AF", homeScorers: "A. Larose, M. Sahi Dion" },
+          { home: "AS Saint-Étienne", homeScore: 3, awayScore: 1, away: "Clermont Foot 63", homeScorers: "I. Cardona, T. Ballo, J. Breum", awayScorers: "O. Diop" }
         ],
         3: [
           { home: "USL Dunkerque", homeScore: 0, awayScore: 1, away: "Montpellier HSC", awayScorers: "N. Pays" },
@@ -610,7 +610,9 @@
     function initSeason() {
       if (!seasonMatches[1] || !seasonMatches[2]) {
         seasonMatches = createOfficialMatches();
+        localStorage.setItem("seasonMatches", JSON.stringify(seasonMatches));
       }
+      recomputeTopScorersFromMatches();
       currentJournee = findNextJourneeToPlay();
     }
 
@@ -727,34 +729,7 @@
     // par-dessus une base figée (les vrais totaux déjà connus avant l'automatisation),
     // sans jamais perdre ces totaux de départ.
     function recomputeTopScorersFromMatches() {
-      const totals = {}; // key = nom (en minuscules) -> { name, club, goals }
-      Object.keys(seasonMatches).forEach(j => {
-        (seasonMatches[j] || []).forEach(m => {
-          const homeTally = parseScorersField(m.homeScorers);
-          Object.keys(homeTally).forEach(name => {
-            const key = name.trim().toLowerCase();
-            if (!totals[key]) totals[key] = { name: name.trim(), club: m.home, goals: 0 };
-            totals[key].goals += homeTally[name];
-          });
-          const awayTally = parseScorersField(m.awayScorers);
-          Object.keys(awayTally).forEach(name => {
-            const key = name.trim().toLowerCase();
-            if (!totals[key]) totals[key] = { name: name.trim(), club: m.away, goals: 0 };
-            totals[key].goals += awayTally[name];
-          });
-        });
-      });
-
-      if (Object.keys(totals).length === 0) return; // rien saisi via les matchs, on ne touche à rien
-
-      // Base figée une seule fois : les vrais totaux connus avant la saisie match par match
-      let baseline = JSON.parse(localStorage.getItem("scorersBaseline") || "null");
-      if (!baseline) {
-        baseline = topScorers.map(s => ({ ...s }));
-        localStorage.setItem("scorersBaseline", JSON.stringify(baseline));
-      }
-
-      const merged = baseline.map(s => ({ ...s }));
+      const totals = {}; // clé = nom en minuscules -> { name, club, goals }
 
       function namesMatch(typed, full) {
         const t = typed.trim().toLowerCase();
@@ -764,18 +739,31 @@
         return fParts.includes(t) || t === fParts[fParts.length - 1];
       }
 
-      Object.keys(totals).forEach(key => {
-        const t = totals[key];
-        const existing = merged.find(s => namesMatch(t.name, s.name));
-        if (existing) {
-          const baseEntry = baseline.find(s => namesMatch(t.name, s.name));
-          existing.goals = (baseEntry?.goals || 0) + t.goals;
-        } else {
-          merged.push({ name: t.name, club: t.club, goals: t.goals });
-        }
+      Object.keys(seasonMatches).forEach(j => {
+        (seasonMatches[j] || []).forEach(m => {
+          const homeTally = parseScorersField(m.homeScorers);
+          Object.keys(homeTally).forEach(name => {
+            let key = name.trim().toLowerCase();
+            const existingKey = Object.keys(totals).find(k => namesMatch(name, totals[k].name));
+            if (existingKey) key = existingKey;
+            if (!totals[key]) totals[key] = { name: name.trim(), club: m.home, goals: 0 };
+            totals[key].goals += homeTally[name];
+          });
+          const awayTally = parseScorersField(m.awayScorers);
+          Object.keys(awayTally).forEach(name => {
+            let key = name.trim().toLowerCase();
+            const existingKey = Object.keys(totals).find(k => namesMatch(name, totals[k].name));
+            if (existingKey) key = existingKey;
+            if (!totals[key]) totals[key] = { name: name.trim(), club: m.away, goals: 0 };
+            totals[key].goals += awayTally[name];
+          });
+        });
       });
 
-      topScorers = merged;
+      const fromMatches = Object.values(totals);
+      if (fromMatches.length === 0) return; // rien saisi, on ne touche à rien
+
+      topScorers = fromMatches;
       localStorage.setItem("topScorers", JSON.stringify(topScorers));
     }
 
