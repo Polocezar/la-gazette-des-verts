@@ -831,7 +831,7 @@
 
       topScorers.sort((a,b) => b.goals - a.goals);
       document.getElementById("top-scorers-body").innerHTML = topScorers.slice(0, 5).map((s, i) => `
-        <tr class="${s.club === 'ASSE' || s.club === 'Saint-Étienne' ? 'highlight-asse' : ''}">
+        <tr class="${s.club === 'ASSE' || s.club === 'Saint-Étienne' || s.club === 'AS Saint-Étienne' ? 'highlight-asse' : ''}">
           <td>${i+1}</td>
           <td class="col-left">${s.name}</td>
           <td style="color: var(--text-muted);">${s.club}</td>
