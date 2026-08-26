@@ -166,6 +166,31 @@
       text-align: center; font-weight: bold; font-size: 0.95rem; border-radius: 3px;
     }
 
+    .player-list {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      max-height: 220px;
+      overflow-y: auto;
+      background: #141414;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      margin-top: 4px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+    .player-item {
+      padding: 7px 10px;
+      font-size: 0.78rem;
+      color: var(--text-light);
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .player-item:hover { background: rgba(0,255,140,0.08); color: var(--neon-green); }
+    .player-item:last-child { border-bottom: none; }
+
     .btn-green {
       width: 100%; background: var(--neon-green); color: #000000; border: none;
       padding: 12px; font-weight: 800; border-radius: 4px; cursor: pointer;
@@ -302,6 +327,75 @@
   <script>
     let articlesData = [];
     let deletedArticleIds = JSON.parse(localStorage.getItem("deletedArticleIds")) || [];
+
+    // Base de joueurs par club, pour la sélection rapide des buteurs.
+    // S'enrichit automatiquement à chaque nouveau nom saisi (voir addPlayerToClub).
+    const seedClubPlayers = {
+      "AS Saint-Étienne": ["I. Touré","B. Maubleu","M. N'Diaye","B. Fall","G. Larsonneur","M. N'Zuzi","S. Stojković","E. Hornech","M. Nadé","A. Dodote","D. Batubinsika","M. Bernauer","D. Appiah","B. Old","João Ferreira","Chico Lamba","T. Svetlin","S. Naïr","A. Soumahoro","E. Annan","K. Pedro","J. Le Cardinal","Y. Maçon","L. Traoré","N. Nkondo","J. Mouton","S. Achour","M. Jaber","J. Sahraoui","I. Cardona","T. Ballo","P. Eymard","F. Tardieu","J. Breum","Á. Csongvai","J. Duffus","A. Boakye","Z. Davitashvili","L. Gadegbeku","I. Miladinović","A. Moueffek","A. Baallal","M. Sissoko","N. Moulin","I. Cheikh","L. Stassin","M. Toty","D. N'Guessan","I. Wadji","N. El Jamali"],
+      "Rodez AF": ["L. Margueron","R. Lipinski","M. Magnin","L. Laurent","E. Jean Lambert","C. Issanchou","A. Cartillier","I. Baldé","O. Joly","R. Ponti","S. Sow"],
+      "FC Metz": ["P. Fall","G. Abuashvili"],
+      "Red Star FC": ["K. Cabral","D. Durand"],
+      "Dijon FCO": ["J. Marié","A. Lembezat"],
+      "FC Sochaux-Montbéliard": ["B. Fofana"],
+      "AS Nancy-Lorraine": ["B. Bokangu"],
+      "Montpellier HSC": ["N. Pays","Y. Issoufou","C. Jullien","I. Mohamed","T. Sainte-Luce","L. Mincarelli","Y. Mouanga","B. Omeragić","E. Tchato","T. Chennahi","N. Maksimović","C. Mamilo","M. Zeghadi","N. Mbuku","Y. Ali Issoufou","L. Da Silva","A. Delort","N. Vidal-Cartoux","K. Fayad","T. Savanier","V. Orakpo","E. Molébé","N. Homssa","A. Sishuba"],
+      "US Boulogne": ["A. Hbouch","S. Kielt"],
+      "Stade de Reims": ["A. Tia","Y. Fofana"],
+      "USL Dunkerque": ["V. Mayela","M. Decherf","E. Prutsev","A. Lebeau","S. Keita","T. Robinet"],
+      "Grenoble Foot 38": ["Y. Diaby"],
+      "EA Guingamp": ["A. Démouchy"],
+      "FC Nantes": ["K. Corredor","H. Guirassy"],
+      "Stade Lavallois": ["E. Clavreul","J. Maggiotti","T. Dago","M. Houdayer"],
+      "FC Annecy": ["A. Drouhin","A. Larose","M. Sahi Dion"],
+      "Clermont Foot 63": ["J. Nyindong","O. Diop"],
+      "Pau FC": ["B. Leye"]
+    };
+
+    function getClubPlayers() {
+      let stored = JSON.parse(localStorage.getItem("clubPlayers") || "null");
+      if (!stored) {
+        stored = JSON.parse(JSON.stringify(seedClubPlayers));
+        localStorage.setItem("clubPlayers", JSON.stringify(stored));
+      }
+      return stored;
+    }
+
+    function addPlayerToClub(club, name) {
+      if (!name) return;
+      const players = getClubPlayers();
+      if (!players[club]) players[club] = [];
+      const exists = players[club].some(p => p.trim().toLowerCase() === name.trim().toLowerCase());
+      if (!exists) {
+        players[club].push(name.trim());
+        localStorage.setItem("clubPlayers", JSON.stringify(players));
+      }
+    }
+
+    // Ajoute (ou incrémente "xN") un buteur dans le champ texte correspondant
+    function pickScorer(idx, side, name) {
+      const inputId = `scorers-${side}-${idx}`;
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const current = input.value.trim();
+      const xMatch = new RegExp(`(^|,\\s*)${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\s*x(\\d+))?(\\s*,|$)`, 'i');
+      const found = current.match(xMatch);
+      if (found) {
+        const n = found[3] ? parseInt(found[3], 10) + 1 : 2;
+        input.value = current.replace(xMatch, `$1${name} x${n}$4`);
+      } else {
+        input.value = current ? `${current}, ${name}` : name;
+      }
+      updateScoresFromInput();
+      renderMatches();
+    }
+
+    function togglePlayerList(idx, side) {
+      const el = document.getElementById(`player-list-${side}-${idx}`);
+      if (!el) return;
+      const isOpen = el.style.display === "block";
+      document.querySelectorAll('[id^="player-list-"]').forEach(e => e.style.display = "none");
+      el.style.display = isOpen ? "none" : "block";
+    }
 
     const defaultScorers = [
       { name: "Irvin Cardona", club: "ASSE", goals: 3 },
@@ -878,21 +972,36 @@
 
       const container = document.getElementById("match-list-container");
       const matches = seasonMatches[currentJournee];
+      const clubPlayers = getClubPlayers();
+
+      function playerListHtml(idx, side, club) {
+        const players = (clubPlayers[club] || []).slice().sort((a,b) => a.localeCompare(b));
+        const items = players.length
+          ? players.map(p => `<div class="player-item" onclick="pickScorer(${idx}, '${side}', '${p.replace(/'/g, "\\'")}')">${p}</div>`).join("")
+          : `<div class="player-item" style="color: var(--text-muted); cursor: default;">Aucun joueur mémorisé pour l'instant — tape un nom ci-dessous</div>`;
+        return `<div class="player-list" id="player-list-${side}-${idx}">${items}</div>`;
+      }
 
       container.innerHTML = matches.map((m, idx) => `
         <div class="match-row" style="flex-direction: column; align-items: stretch; gap: 8px;">
           <div style="display: flex; align-items: center; justify-content: space-between;">
-            <span class="team-name team-home">${m.home}</span>
+            <span class="team-name team-home" style="cursor: pointer; text-decoration: underline dotted;" onclick="togglePlayerList(${idx}, 'home')">${m.home}</span>
             <div class="score-inputs">
               <input type="number" class="score-input" id="home-${idx}" value="${m.homeScore !== undefined ? m.homeScore : ''}" oninput="updateScoresFromInput()">
               <span style="color: var(--text-muted);">-</span>
               <input type="number" class="score-input" id="away-${idx}" value="${m.awayScore !== undefined ? m.awayScore : ''}" oninput="updateScoresFromInput()">
             </div>
-            <span class="team-name team-away">${m.away}</span>
+            <span class="team-name team-away" style="cursor: pointer; text-decoration: underline dotted;" onclick="togglePlayerList(${idx}, 'away')">${m.away}</span>
           </div>
           <div style="display: flex; gap: 8px;">
-            <input type="text" placeholder="Buteurs ${m.home} (ex: Cardona, Cardona, Breum)" id="scorers-home-${idx}" value="${m.homeScorers || ''}" oninput="updateScoresFromInput()" style="flex: 1; background: #0d0d0d; border: 1px solid var(--card-border); color: var(--text-light); border-radius: 6px; padding: 6px 8px; font-size: 0.75rem;">
-            <input type="text" placeholder="Buteurs ${m.away} (ex: Diaby x2)" id="scorers-away-${idx}" value="${m.awayScorers || ''}" oninput="updateScoresFromInput()" style="flex: 1; background: #0d0d0d; border: 1px solid var(--card-border); color: var(--text-light); border-radius: 6px; padding: 6px 8px; font-size: 0.75rem;">
+            <div style="flex: 1; position: relative;">
+              <input type="text" placeholder="Buteurs ${m.home} (clique sur le nom de l'équipe ↑)" id="scorers-home-${idx}" value="${m.homeScorers || ''}" oninput="updateScoresFromInput()" onblur="commitScorersToClub(${idx}, 'home', '${m.home.replace(/'/g, "\\'")}')" style="width: 100%; box-sizing: border-box; background: #0d0d0d; border: 1px solid var(--card-border); color: var(--text-light); border-radius: 6px; padding: 6px 8px; font-size: 0.75rem;">
+              ${playerListHtml(idx, 'home', m.home)}
+            </div>
+            <div style="flex: 1; position: relative;">
+              <input type="text" placeholder="Buteurs ${m.away} (clique sur le nom de l'équipe ↑)" id="scorers-away-${idx}" value="${m.awayScorers || ''}" oninput="updateScoresFromInput()" onblur="commitScorersToClub(${idx}, 'away', '${m.away.replace(/'/g, "\\'")}')" style="width: 100%; box-sizing: border-box; background: #0d0d0d; border: 1px solid var(--card-border); color: var(--text-light); border-radius: 6px; padding: 6px 8px; font-size: 0.75rem;">
+              ${playerListHtml(idx, 'away', m.away)}
+            </div>
           </div>
         </div>
       `).join("");
@@ -911,6 +1020,13 @@
       localStorage.setItem("seasonMatches", JSON.stringify(seasonMatches));
       recomputeTopScorersFromMatches();
       renderStandingsAndStats();
+    }
+
+    // Mémorise les noms saisis dans un champ buteurs pour ce club (appelé quand on quitte le champ)
+    function commitScorersToClub(idx, side, club) {
+      const input = document.getElementById(`scorers-${side}-${idx}`);
+      if (!input) return;
+      Object.keys(parseScorersField(input.value)).forEach(name => addPlayerToClub(club, name));
     }
 
     // Parse un champ "Cardona, Cardona, Breum" ou "Cardona x2, Breum" en {nom: buts}
