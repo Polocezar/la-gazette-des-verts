@@ -365,9 +365,26 @@
     };
 
     function getClubPlayers() {
-      let stored = JSON.parse(localStorage.getItem("clubPlayers") || "null");
-      if (!stored) {
-        stored = JSON.parse(JSON.stringify(seedClubPlayers));
+      let stored = JSON.parse(localStorage.getItem("clubPlayers") || "null") || {};
+
+      // Fusion avec la base du fichier (seedClubPlayers) : on ne perd jamais un nom,
+      // ni ceux ajoutés dans le code, ni ceux appris automatiquement dans le navigateur.
+      let changed = false;
+      Object.keys(seedClubPlayers).forEach(club => {
+        if (!stored[club]) {
+          stored[club] = [];
+          changed = true;
+        }
+        seedClubPlayers[club].forEach(name => {
+          const exists = stored[club].some(p => p.trim().toLowerCase() === name.trim().toLowerCase());
+          if (!exists) {
+            stored[club].push(name);
+            changed = true;
+          }
+        });
+      });
+
+      if (changed) {
         localStorage.setItem("clubPlayers", JSON.stringify(stored));
       }
       return stored;
