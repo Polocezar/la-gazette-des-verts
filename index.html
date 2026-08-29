@@ -173,13 +173,26 @@
       left: 0;
       right: 0;
       z-index: 20;
-      max-height: 220px;
+      max-height: 320px;
       overflow-y: auto;
       background: #141414;
       border: 1px solid var(--card-border);
       border-radius: 6px;
       margin-top: 4px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+    .player-search {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      box-sizing: border-box;
+      background: #1a1a1a;
+      border: none;
+      border-bottom: 1px solid var(--card-border);
+      color: var(--text-light);
+      padding: 8px 10px;
+      font-size: 0.78rem;
+      outline: none;
     }
     .player-item {
       padding: 7px 10px;
@@ -395,6 +408,18 @@
       const isOpen = el.style.display === "block";
       document.querySelectorAll('[id^="player-list-"]').forEach(e => e.style.display = "none");
       el.style.display = isOpen ? "none" : "block";
+      if (!isOpen) {
+        const search = el.querySelector(".player-search");
+        if (search) setTimeout(() => search.focus(), 30);
+      }
+    }
+
+    function filterPlayerList(input) {
+      const q = input.value.trim().toLowerCase();
+      const list = input.closest(".player-list");
+      list.querySelectorAll(".player-item[data-name]").forEach(item => {
+        item.style.display = item.dataset.name.includes(q) ? "" : "none";
+      });
     }
 
     const defaultScorers = [
@@ -977,9 +1002,12 @@
       function playerListHtml(idx, side, club) {
         const players = (clubPlayers[club] || []).slice().sort((a,b) => a.localeCompare(b));
         const items = players.length
-          ? players.map(p => `<div class="player-item" onclick="pickScorer(${idx}, '${side}', '${p.replace(/'/g, "\\'")}')">${p}</div>`).join("")
+          ? players.map(p => `<div class="player-item" data-name="${p.toLowerCase()}" onclick="pickScorer(${idx}, '${side}', '${p.replace(/'/g, "\\'")}')">${p}</div>`).join("")
           : `<div class="player-item" style="color: var(--text-muted); cursor: default;">Aucun joueur mémorisé pour l'instant — tape un nom ci-dessous</div>`;
-        return `<div class="player-list" id="player-list-${side}-${idx}">${items}</div>`;
+        const searchBox = players.length > 8
+          ? `<input type="text" class="player-search" placeholder="Rechercher..." oninput="filterPlayerList(this)" onclick="event.stopPropagation()">`
+          : "";
+        return `<div class="player-list" id="player-list-${side}-${idx}">${searchBox}${items}</div>`;
       }
 
       container.innerHTML = matches.map((m, idx) => `
