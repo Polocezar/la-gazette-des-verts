@@ -240,6 +240,8 @@
     .add-btn { color: var(--text-muted); font-size: 0.75rem; cursor: pointer; }
     .add-btn:hover { color: var(--neon-green); }
   </style>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -338,6 +340,30 @@
   </div>
 
   <script>
+    // --- Synchronisation cloud (Firebase Firestore) ---
+    // Permet de partager résultats, buteurs et joueurs entre tous les appareils
+    // (téléphone, PC, etc.) au lieu de rester bloqué dans le navigateur local.
+    const firebaseConfig = {
+      apiKey: "AIzaSyCYZuhh6iKsUMM-MBA3fANDGgCQOhANfVU",
+      authDomain: "alcf-basket.firebaseapp.com",
+      projectId: "alcf-basket",
+      storageBucket: "alcf-basket.firebasestorage.app",
+      messagingSenderId: "1082312491425",
+      appId: "1:1082312491425:web:646f4c5158d2707b0d8be0"
+    };
+    let db = null;
+    let gazetteDocRef = null;
+    let cloudAvailable = false;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      gazetteDocRef = db.collection("gazette-des-verts").doc("saison-2026-2027");
+      cloudAvailable = true;
+    } catch (e) {
+      console.warn("Firebase indisponible au chargement, mode local seul :", e);
+    }
+    let cloudReady = false; // true une fois la 1ère synchro reçue, pour éviter d'écraser le cloud avant d'avoir lu son contenu
+
     let articlesData = [];
     let deletedArticleIds = JSON.parse(localStorage.getItem("deletedArticleIds")) || [];
 
@@ -398,6 +424,7 @@
       if (!exists) {
         players[club].push(name.trim());
         localStorage.setItem("clubPlayers", JSON.stringify(players));
+        pushToCloud();
       }
     }
 
@@ -952,13 +979,62 @@
       };
     }
 
-    function initSeason() {
+    function pushToCloud() {
+      if (!cloudAvailable || !cloudReady || !gazetteDocRef) return;
+      gazetteDocRef.set({
+        seasonMatches,
+        topScorers,
+        clubPlayers: getClubPlayers()
+      }, { merge: true }).catch(e => console.warn("Erreur de synchronisation cloud :", e));
+    }
+
+    let firstSyncDone = false;
+
+    function localOnlyInit() {
       if (!seasonMatches[1] || !seasonMatches[2]) {
         seasonMatches = createOfficialMatches();
-        localStorage.setItem("seasonMatches", JSON.stringify(seasonMatches));
       }
       recomputeTopScorersFromMatches();
       currentJournee = findNextJourneeToPlay();
+      setupSelects();
+      renderMatches();
+      renderStandingsAndStats();
+    }
+
+    // Écoute en temps réel : toute modif faite sur un autre appareil (téléphone, PC...)
+    // arrive ici automatiquement, sans avoir besoin de recharger la page.
+    function startCloudSync() {
+      if (!cloudAvailable) {
+        localOnlyInit();
+        return;
+      }
+      gazetteDocRef.onSnapshot(doc => {
+        if (doc.exists) {
+          const data = doc.data();
+          if (data.seasonMatches) seasonMatches = data.seasonMatches;
+          if (data.topScorers) topScorers = data.topScorers;
+          if (data.clubPlayers) localStorage.setItem("clubPlayers", JSON.stringify(data.clubPlayers));
+          localStorage.setItem("seasonMatches", JSON.stringify(seasonMatches));
+          localStorage.setItem("topScorers", JSON.stringify(topScorers));
+        } else if (!seasonMatches[1] || !seasonMatches[2]) {
+          seasonMatches = createOfficialMatches();
+        }
+        cloudReady = true;
+
+        if (!firstSyncDone) {
+          firstSyncDone = true;
+          recomputeTopScorersFromMatches();
+          currentJournee = findNextJourneeToPlay();
+          setupSelects();
+          if (!doc.exists) pushToCloud(); // crée le document cloud au tout premier lancement
+        }
+        renderMatches();
+        renderStandingsAndStats();
+      }, err => {
+        console.warn("Firestore indisponible, passage en mode local seul :", err);
+        cloudAvailable = false;
+        localOnlyInit();
+      });
     }
 
     // Trouve la première journée qui n'a pas encore tous ses scores saisis
@@ -1065,6 +1141,7 @@
       localStorage.setItem("seasonMatches", JSON.stringify(seasonMatches));
       recomputeTopScorersFromMatches();
       renderStandingsAndStats();
+      pushToCloud();
     }
 
     // Mémorise les noms saisis dans un champ buteurs pour ce club (appelé quand on quitte le champ)
@@ -1072,6 +1149,7 @@
       const input = document.getElementById(`scorers-${side}-${idx}`);
       if (!input) return;
       Object.keys(parseScorersField(input.value)).forEach(name => addPlayerToClub(club, name));
+      pushToCloud();
     }
 
     // Parse un champ "Cardona, Cardona, Breum" ou "Cardona x2, Breum" en {nom: buts}
@@ -1156,6 +1234,7 @@
         renderMatches();
         renderStandingsAndStats();
         loadArticles();
+        pushToCloud();
       }
     }
 
@@ -1222,11 +1301,8 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      initSeason();
+      startCloudSync();
       loadArticles();
-      setupSelects();
-      renderMatches();
-      renderStandingsAndStats();
       // Rafraîchissement automatique des actus toutes les 10 minutes
       setInterval(loadArticles, 10 * 60 * 1000);
     });
