@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Gazette des Verts</title>
+  <style>
+    :root {
+      --bg-black: #050505;
+      --card-bg: #0d130e;
+      --card-border: #152418;
+      --neon-green: #00ff66;
+      --neon-green-hover: #00cc52;
+      --text-white: #ffffff;
+      --text-muted: #8a998e;
+      --input-bg: #000000;
+      --danger-red: #d93838;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-black);
+      color: var(--text-white);
+      margin: 0;
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .header h1 {
+      color: var(--neon-green);
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      margin: 0;
+      text-shadow: 0 0 10px rgba(0, 255, 102, 0.3);
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      letter-spacing: 1.5px;
+      margin-top: 5px;
+      text-transform: uppercase;
+    }
+
+    .grid-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr 340px;
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1100px) {
+      .grid-layout { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 15px;
+    }
+
+    .card-title {
+      color: var(--neon-green);
+      font-size: 1rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-top: 0;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .news-search {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-white);
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      font-size: 0.85rem;
+    }
+
+    .news-list {
+      max-height: 680px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+
+    .news-list::-webkit-scrollbar { width: 5px; }
+    .news-list::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 3px; }
+
+    .news-item {
+      background: #000000;
+      border: 1px solid var(--card-border);
+      border-left: 3px solid var(--neon-green);
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 3px;
+      position: relative;
+    }
+
+    .news-item a {
+      color: var(--text-white);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      line-height: 1.3;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .news-item a:hover { color: var(--neon-green); }
+
+    .news-meta { font-size: 0.75rem; color: var(--text-muted); }
+
+    .news-delete {
+      position: absolute; right: 8px; bottom: 8px;
+      color: var(--danger-red); cursor: pointer; font-weight: bold; font-size: 0.8rem;
+    }
+
+    .select-label {
+      font-size: 0.75rem; color: var(--text-muted);
+      text-transform: uppercase; margin-bottom: 5px; display: block;
+    }
+
+    .select-row { display: flex; gap: 15px; margin-bottom: 20px; }
+    .select-group { flex: 1; }
+
+    select {
+      width: 100%; background: var(--input-bg);
+      border: 1px solid var(--card-border); color: var(--text-white);
+      padding: 8px; border-radius: 4px; font-size: 0.9rem;
+    }
+
+    .subtitle-green {
+      color: var(--neon-green); font-size: 0.85rem; font-weight: bold;
+      text-transform: uppercase; margin-bottom: 15px;
+    }
+
+    .match-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #000000; border: 1px solid var(--card-border);
+      padding: 8px 12px; margin-bottom: 8px; border-radius: 4px;
+    }
+
+    .team-name { font-size: 0.85rem; flex: 1; }
+    .team-home { text-align: right; }
+    .team-away { text-align: left; }
+
+    .score-inputs { display: flex; align-items: center; gap: 6px; margin: 0 12px; }
+
+    .score-input {
+      width: 38px; height: 32px; background: var(--input-bg);
+      border: 1px solid var(--card-border); color: var(--neon-green);
+      text-align: center; font-weight: bold; font-size: 0.95rem; border-radius: 3px;
+    }
+
+    .player-list {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      max-height: 320px;
+      overflow-y: auto;
+      background: #141414;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      margin-top: 4px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+    .player-search {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      box-sizing: border-box;
+      background: #1a1a1a;
+      border: none;
+      border-bottom: 1px solid var(--card-border);
+      color: var(--text-light);
+      padding: 8px 10px;
+      font-size: 0.78rem;
+      outline: none;
+    }
+    .player-item {
+      padding: 7px 10px;
+      font-size: 0.78rem;
+      color: var(--text-light);
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .player-item:hover { background: rgba(0,255,140,0.08); color: var(--neon-green); }
+    .player-item:last-child { border-bottom: none; }
+
+    .btn-green {
+      width: 100%; background: var(--neon-green); color: #000000; border: none;
+      padding: 12px; font-weight: 800; border-radius: 4px; cursor: pointer;
+      text-transform: uppercase; font-size: 0.85rem; margin-top: 15px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+
+    .btn-green:hover { background: var(--neon-green-hover); }
+
+    .btn-reset {
+      width: 100%; background: var(--danger-red); color: #ffffff; border: none;
+      padding: 10px; font-weight: bold; border-radius: 4px; cursor: pointer;
+      text-transform: uppercase; font-size: 0.8rem; margin-top: 10px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+
+    .stat-row {
+      display: flex; justify-content: space-between; font-size: 0.85rem;
+      margin-bottom: 6px; color: var(--text-white);
+    }
+
+    .stat-val { color: var(--text-white); font-weight: 600; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 10px; }
+
+    th {
+      color: var(--text-muted); font-weight: normal; text-align: center;
+      padding: 6px 4px; border-bottom: 1px solid var(--card-border);
+    }
+
+    td { padding: 6px 4px; text-align: center; border-bottom: 1px solid #111a13; }
+    .col-left { text-align: left; }
+    .highlight-asse { color: var(--neon-green); font-weight: bold; }
+    .add-btn { color: var(--text-muted); font-size: 0.75rem; cursor: pointer; }
+    .add-btn:hover { color: var(--neon-green); }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+  <div class="header">
+    <h1>LA GAZETTE DES VERTS</h1>
+    <p>ACTUALITÉS & SAISON EN DIRECT</p>
+  </div>
+
+  <div class="grid-layout">
+
+    <!-- COLONNE 1: ACTUALITES -->
+    <div class="card">
+      <div class="card-title">
+        <span>ACTUALITÉS DE L'ASSE</span>
+        <span style="font-size: 0.75rem; cursor:pointer;" onclick="loadArticles()">🔄 Rafraîchir</span>
+      </div>
+      <input type="text" id="search-news" class="news-search" placeholder="Rechercher un article..." onkeyup="filterArticles()">
+      <div id="news-container" class="news-list">
+        <div style="color: var(--text-muted); font-size: 0.8rem;">Chargement des articles...</div>
+      </div>
+    </div>
+
+    <!-- COLONNE 2: CALENDRIER & SAISIE -->
+    <div class="card">
+      <div class="card-title">CALENDRIER DES MATCHS (LIGUE 2 BKT)</div>
+      
+      <div class="select-row">
+        <div class="select-group">
+          <label class="select-label">CHOISIR UN MOIS</label>
+          <select id="select-mois" onchange="filterJourneesByMonth()"></select>
+        </div>
+        <div class="select-group">
+          <label class="select-label">CHOISIR UNE JOURNÉE</label>
+          <select id="select-journee" onchange="changeJournee()"></select>
+        </div>
+      </div>
+
+      <div class="subtitle-green" id="form-title">SAISIR LES RÉSULTATS</div>
+
+      <div id="match-list-container"></div>
+
+      <button class="btn-green" onclick="saveCurrentJourneeScores(true)">💾 ENREGISTRER LA JOURNÉE</button>
+      <button class="btn-reset" onclick="resetSeasonData()">🗑️ RÉINITIALISER LE CHAMPIONNAT</button>
+    </div>
+
+    <!-- COLONNE 3: STATS & CLASSEMENT -->
+    <div class="card">
+      <div class="card-title">STATISTIQUES DE LA SAISON</div>
+
+      <div class="stat-row">
+        <span>🔥 Meilleure Attaque :</span>
+        <span class="stat-val" id="best-attack">-</span>
+      </div>
+      <div class="stat-row" style="margin-bottom: 20px;">
+        <span>🎈 Pire Défense :</span>
+        <span class="stat-val" id="worst-defense">-</span>
+      </div>
+
+      <div class="card-title" style="margin-bottom: 5px;">
+        <span>⚽ TOP 5 BUTEURS</span>
+        <span class="add-btn" onclick="addManualScorer()">+ Ajouter</span>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>PL.</th>
+            <th class="col-left">JOUEUR</th>
+            <th>CLUB</th>
+            <th>BUTS</th>
+          </tr>
+        </thead>
+        <tbody id="top-scorers-body"></tbody>
+      </table>
+
+      <div class="card-title" style="margin-top: 25px;">CLASSEMENT LIGUE 2 BKT</div>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="col-left">CLUB</th>
+            <th>MJ</th>
+            <th>G</th>
+            <th>N</th>
+            <th>P</th>
+            <th>BP</th>
+            <th>BC</th>
+            <th>DB</th>
+            <th>PTS</th>
+          </tr>
+        </thead>
+        <tbody id="standings-body"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    // --- Synchronisation cloud (Firebase Firestore) ---
+    // Permet de partager résultats, buteurs et joueurs entre tous les appareils
+    // (téléphone, PC, etc.) au lieu de rester bloqué dans le navigateur local.
+    const firebaseConfig = {
+      apiKey: "AIzaSyCYZuhh6iKsUMM-MBA3fANDGgCQOhANfVU",
+      authDomain: "alcf-basket.firebaseapp.com",
+      projectId: "alcf-basket",
+      storageBucket: "alcf-basket.firebasestorage.app",
+      messagingSenderId: "1082312491425",
+      appId: "1:1082312491425:web:646f4c5158d2707b0d8be0"
+    };
+    let db = null;
+    let gazetteDocRef = null;
+    let cloudAvailable = false;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      gazetteDocRef = db.collection("gazette-des-verts").doc("saison-2026-2027");
+      cloudAvailable = true;
+    } catch (e) {
+      console.warn("Firebase indisponible au chargement, mode local seul :", e);
+    }
+    let cloudReady = false; // true une fois la 1ère synchro reçue, pour éviter d'écraser le cloud avant d'avoir lu son contenu
+
+    let articlesData = [];
+    let deletedArticleIds = JSON.parse(localStorage.getItem("deletedArticleIds")) || [];
+
+    // Base de joueurs par club, pour la sélection rapide des buteurs.
+    // S'enrichit automatiquement à chaque nouveau nom saisi (voir addPlayerToClub).
+    const seedClubPlayers = {
+      "AS Saint-Étienne": ["L. Lavallée","M. N'Diaye","G. Larsonneur","S. Stojković","M.Bernauer","B. Old","J. Ferreira","C. Lamba","S. Nair","K. Pedro","J. lecardinal","L.Traoré","M. Jaber","J Breum","A. Csongvai","T. Svetlin","P. Eymard","A. Moueffek","N. El Jamali","I. Cardona","T. Ballo","L. Stassin","J. Duffus","A. Boakye","Z. Davitashvili","D N'Guessan","M. Paalberg","A. Baallal","M. Sissoko","N. Moulin","I. Cheikh","N. Kasia"],
+      "Rodez AF": ["Q. Braat", "L. Margueron", "E. Crombez", "R. Lipinski", "M. Magnin", "C. Jolibois Houilliez", "E. Jean-Lambert", "D. Vangi", "C. Doumbia", "L. Laurent", "S. Luyambula", "A. Cartillier", "J. Mendes", "D. Pavlovic", "N. Nsingi", "R. Ponti", "O. Joly", "S. Benchama", "Y. Dahalani", "K. Nagera", "M. Baaloudj", "M. Touho", "C. Issanchou Roubiou", "I. Baldé", "H. Tebily", "D. Mavounia-Kouka"],
+      "FC Metz":["J. Fischer", "O. Ba", "P. Sy", "M. Colin", "F. Miguel", "M. Diop", "I. Sané", "C. Melieres", "Y. Lawson", "A. Marchal", "C. Devenish", "B. Sarr", "I. Mohamed", "U. Mboula", "J. Ruiz", "N. Mendy", "J. Deminguet", "G. Abuachvili", "T. Savanier", "A. Touré", "B. Munongo", "J. Pandore", "A. Sy", "P. Fall", "J. Mangondo", "M. Bokele", "H. Diallo", "N. Mbala", "E. Soumah-Abbad", "H. Kadamani", "B. Song", "A. Mbodji"],
+      "Red Star FC":["Y. Benchaouch", "G. Poussin", "M. Hassen", "T. Magnin", "M. Huard", "J. Escartin", "B. Danger", "G. Seko", "E. Zidane", "D. Durivaux", "P. Lemonnier", "M. Ahamada", "C. Lahmer", "L. Buta", "B. Pierret", "D. Durand", "G. Trani", "S. Khaoui", "S. Renel", "I. Halifa", "C. Konate", "R. Hachem", "K. Cissé", "A. Hachem", "J. Ikanga", "K. Cabral"],
+      "Dijon FCO": ["E. Ketterle", "P. Delecroix", "I. Marie-Rose", "Q. Bernard", "W. Diouf", "A. Bargain", "C. Obongo", "H. Vargas Rios", "L. Lacroix", "I. Bouleghcha", "A. Benyahya", "M. Barreto", "B. Hamada", "P. Bellon", "J. Marié", "A. Lembezat", "B. Nsimba Ndezi", "S. Chouchane", "H. Mimoune", "Y. Aka", "T. Dong", "Y. Barka", "J. Tavares", "A. Ntamack", "M. Faty", "F. Rombogouera", "A. Djae"],
+      "FC Sochaux-Montbéliard":["M. Schubler Lecart", "A. Pierre", "M. Jeannin", "M. Toure", "D. Gomis", "A. Vitelli", "M. Peybernes", "B. Youssouf", "B. Diawara", "E. N Gatta", "D. Tavares", "S. Agouzoul", "E. Noel Dode", "J. Mexique", "A. Sidibe", "V. Lobry", "J. Masson", "P. Diop", "E. Kayembe", "M. Clairicia", "H. Bayanginisa", "S. Baghdadi", "B. Gomel", "K. Djoco", "B. Fofana", "V. Monthieu", "N. Kotto Kotto Mouyema", "J. Vetro", "L. Nomel", "M. Mukanya", "E. Cortes"],
+      "AS Nancy-Lorraine": ["E. Basilio", "G. Lembet", "Y. Kouini", "K. Noel", "H. Tavares", "N. Fernandez", "N. Saint-Ruf", "T. Baldé", "E. Mendy", "L. Ndenbe", "J. Gélin", "E. Tacafred", "Y. Nahounou", "K. Kebe", "W. Bouabdeli", "M. Fofana", "H. Barbier", "Y. Ferhat Delaveau", "I. Bouaoune", "M. Guendez", "C. El Hansar", "N. Kandil", "J. Coulibaly", "Y. Tandia", "Z. Fdaouch", "I. Housni", "A. Dabasse", "S. Cissé", "B. Bokangu", "Z. Ztouti", "N. Obougou"],
+      "Montpellier HSC": ["M. Michel", "S. Ngapandouetnbu", "N. Vidal-Cartoux", "V. Džodić", "K. Kamdem", "N. El Hannach", "Y. Mouanga", "J. Laporte", "T. Sainte-Luce", "W. Ndollo Bille", "M. Chambon", "F. Tardieu", "K. Fayad", "N. Pays", "N. Homssa", "D. Benlahlou", "D. Meddah", "H. Abderrebi", "T. Chennahi", "E. Jr", "Y. Issoufou", "L. Megnan-Pavé", "M. Camara", "N. Mukiele", "A. Gueguin", "J. Ndiaye", "G. Ayem"],
+      "US Boulogne": ["X. Lenogue", "I. Koné", "A. Uriev", "B. Nna Noukeu", "J. Kapenga", "J. Boyer", "J. Bultel", "A. Pinot", "D. Thiam", "T. Brusco", "A. Platret", "L. Siliadin", "O. Lenne", "A. Nassiri", "J. Martin", "A. Hbouch", "B. Bešić", "N. Binet", "S. Duflos", "A. Kerriou", "S. Paillard", "T. Dupont", "Z. Moco", "M. Lecolier", "N. Fatar", "E. Mpembele Boula", "C. Dia", "M. Soumah", "T. Epailly"],
+      "Stade de Reims":["T. Hülsmann", "E. Omeragić", "S. Sylla", "A. Sauvage", "J. Okumu", "H. Sekine", "S. Akieme", "J. Mambuku", "S. Kotto", "D. Guindo", "E. N'Tamon", "M. Jeng", "M. Okwaro", "A. Zohouri", "T. Amorim", "J. Celestin", "A. Guboglo", "J. Otomewo", "T. Leoni", "Y. Fofana", "A. Salama", "R. Khadra", "K. Nakamura", "Y. Demoncy", "M. Gbane", "J. Patrick", "T. Deflorence", "C. Kouranfal", "A. Kashi", "A. Tia", "T. Diarrassouba", "M. Daramy", "Y. El Kachati", "M. Debondt", "T. Siebatcheu", "O. Diakité", "A. Bojang", "A. Gadou", "I. Orazi", "N. Sissoko", "L. Sylla", "Q. Paris", "H. Ibrahim", "S. Soumano"],
+      "USL Dunkerque": ["M. Prévot", "M. Sissokho", "M. Ramos", "O. Touré", "B. Lagae", "L. Dziki Loussilaho", "V. Mayela", "L. Vallier", "O. Sanganté", "A. Linguet", "M. Makhloufi", "J. Morel", "K. Ayari", "A. Lebeau", "Y. Prutsev", "T. Massock", "F. Atoen", "Z. Seha", "A. Daho", "S. Nzonzi", "T. Robinet", "P. Dieng", "S. Keita", "M. Decherf", "E. Mayilla"],
+      "Grenoble Foot 38": ["A. Olliero", "B. Allain", "T. Borne", "F. Limouri", "C. Vidal", "A. N'Gatta", "M. Mion", "M. Xantippe", "E. Sarıkaya", "S. Niakate", "Y. Magnin", "L. Bernadou", "B. Mouazan", "M. Bangré", "M. Corboz", "S. Diba", "J. Mouton", "K. Fofana", "Z. Leite", "M. Djitté", "Y. Diaby", "A. Lallias", "U. Bonnet", "L. Cerri", "N. Zahui", "E. Maurin", "D. Hoogewerf", "M. Bechikh", "J. Akpa Akpro"],
+      "EA Guingamp": ["T. Bartouche", "A. Ortolá", "N. Marec", "E. Koffi", "J. Matumona", "D. Gomis", "J. Dianganga", "E. Gassama", "A. Demouchy", "I. Planeix", "V. Muntu Wa Mungu", "D. Louiserre", "D. Nlandu", "F. da Silva", "A. Hemia", "T. Averlant", "S. Ben Brahim", "T. Ahile", "J. Chamakh", "T. Ducrocq", "J. Madondo", "I. Diakite", "E. Aucan", "A. Samoura", "S. Kielt", "G. Ott", "Z. Chtaï-Telamio"],
+      "FC Nantes": ["M. Dupé", "A. Mirbach", "S. Sow", "L. Perrin", "F. Centonze", "F. Guilbert", "E. Mongo", "H. Lamy", "S. Doucouré", "T. Tati", "K. Amian", "L. Gautier", "A. Joujou", "J. Lepenant", "H. Guirassy", "D. Assoumani", "L. Leroux", "M. Cafaro", "W. Younoussa", "I. Sissoko", "K. Dabo", "B. Deuff", "M. Gomes", "S. Ziani", "K. Camara", "L. Diack", "K. Corredor", "M. Mohamed", "I. Ganago", "D. Kone", "Y. Benhattab"],
+      "Stade Lavallois": ["M. Hautbois", "M. Samassa", "W. Bianda", "M. Commaret", "A. Lô", "E. Mouton", "S. Bane", "L. Samb", "J. Maggiotti", "S. Sanna", "C. Gourichy", "T. Bouriaud", "M. Sellouki", "L. Martins", "F. Coquelin", "C. Mandouki", "E. Clavreul", "A. Beaudouin", "J. Gaudin", "E. Montet", "H. Esmel", "M. Sidibé", "Y. Court", "S. Mellier", "T. Dago", "C. Fatou", "N. Mupemba", "A. Kanté", "M. Houdayer"],
+      "FC Annecy": ["F. Escales", "T. Callens", "M. Gonzalez", "S. Lima", "A. Drouhin", "M. Veillon", "C. Makutungu", "J. Kouadio", "G. Secretant", "E. Riou", "T. Delphis", "E. Louisir", "A. Yahi", "E. Marre", "A. Kashi", "F. Lajugie", "K. Young", "M. Kone", "P. Mozie", "K. Jusseron-Veniere", "N. Ferro", "P. Venot", "A. Larose", "A. Casadei", "T. Rambaud", "B. Touré", "R. Neelakandan", "Z. Redmond", "C. Billemaz", "M. Sahi", "A. Mondesir"],
+      "Clermont Foot 63": ["M. Ndiaye", "T. Guivarch", "E. Kena Kabeya", "J. Grillot", "J. Sambia", "V. Nsimba", "C. Konaté", "Y. Salmier", "I. M'Bahia", "M. Donavin", "I. Coulibaly", "K. Boto", "A. Pelmard", "E. Kone", "Y. Bellache", "M. Douane", "J. Astic", "A. Ackra", "A. Baallal", "O. Diop", "M. Bouchenna", "A. Hunou", "A. Saintorens", "J. Nyindong Tsamouna", "E. Cantero", "C. Okou"],
+      "Pau FC":["B. Maubleu", "M. Adam", "E. Salles", "A. Dodote", "S. Basse", "R. Baheng", "A. Briançon", "G. Paquiez", "M. Tourraine", "A. Bamba", "A. Abdallah", "T. Pouilly", "L. Rajot", "C. Fall", "T. Gomes", "J. Benet", "Q. Daubin", "L. Gadegbeku", "K. Gasnier", "H. Benali", "B. Leye", "G. Versini", "A. Lefebvre", "R. Openda", "T. Saettel", "A. Mbaye"]
+    };
+
+    function getClubPlayers() {
+      let stored = JSON.parse(localStorage.getItem("clubPlayers") || "null") || {};
+
+      // Fusion avec la base du fichier (seedClubPlayers) : on ne perd jamais un nom,
+      // ni ceux ajoutés dans le code, ni ceux appris automatiquement dans le navigateur.
+      let changed = false;
+      Object.keys(seedClubPlayers).forEach(club => {
+        if (!stored[club]) {
+          stored[club] = [];
+          changed = true;
+        }
+        seedClubPlayers[club].forEach(name => {
+          const exists = stored[club].some(p => p.trim().toLowerCase() === name.trim().toLowerCase());
+          if (!exists) {
+            stored[club].push(name);
+            changed = true;
+          }
+        });
+      });
+
+      if (changed) {
+        localStorage.setItem("clubPlayers", JSON.stringify(stored));
+      }
+      return stored;
+    }
+
+    function addPlayerToClub(club, name) {
+      if (!name) return;
+      const players = getClubPlayers();
+      if (!players[club]) players[club] = [];
+      const exists = players[club].some(p => p.trim().toLowerCase() === name.trim().toLowerCase());
+      if (!exists) {
+        players[club].push(name.trim());
+        localStorage.setItem("clubPlayers", JSON.stringify(players));
+        pushToCloud();
+      }
+    }
+
+    // Ajoute (ou incrémente "xN") un buteur dans le champ texte correspondant
+    function pickScorer(idx, side, name) {
+      const inputId = `scorers-${side}-${idx}`;
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const current = input.value.trim();
+      const xMatch = new RegExp(`(^|,\\s*)${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\s*x(\\d+))?(\\s*,|$)`, 'i');
+      const found = current.match(xMatch);
+      if (found) {
+        const n = found[3] ? parseInt(found[3], 10) + 1 : 2;
+        input.value = current.replace(xMatch, `$1${name} x${n}$4`);
+      } else {
+        input.value = current ? `${current}, ${name}` : name;
+      }
+      updateScoresFromInput();
+      renderMatches();
+    }
+
+    function togglePlayerList(idx, side) {
+      const el = document.getElementById(`player-list-${side}-${idx}`);
+      if (!el) return;
+      const isOpen = el.style.display === "block";
+      document.querySelectorAll('[id^="player-list-"]').forEach(e => e.style.display = "none");
+      el.style.display = isOpen ? "none" : "block";
+      if (!isOpen) {
+        const search = el.querySelector(".player-search");
+        if (search) setTimeout(() => search.focus(), 30);
+      }
+    }
+
+    function filterPlayerList(input) {
+      const q = input.value.trim().toLowerCase();
+      const list = input.closest(".player-list");
+      list.querySelectorAll(".player-item[data-name]").forEach(item => {
+        item.style.display = item.dataset.name.includes(q) ? "" : "none";
+      });
+    }
+
+    const defaultScorers = [
+      { name: "Irvin Cardona", club: "ASSE", goals: 3 },
+      { name: "Jakob Breum", club: "ASSE", goals: 2 },
+      { name: "Yadaly Diaby", club: "Grenoble", goals: 2 },
+      { name: "Yaya Fofana", club: "Reims", goals: 2 },
+      { name: "Yegor Prutsev", club: "USL Dunkerque", goals: 2 }
+    ];
+
+    let topScorers = JSON.parse(localStorage.getItem("topScorers")) || defaultScorers;
+
+    async function loadArticles() {
+      const container = document.getElementById("news-container");
+      container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.8rem;">Chargement des articles...</div>`;
+
+      try {
+        const response = await fetch('/api/news');
+        if (!response.ok) throw new Error("Erreur de réponse");
+        const data = await response.json();
+
+        if (data.success && data.articles && data.articles.length > 0) {
+          articlesData = data.articles.map((item, index) => ({
+            id: item.link || `art-${index}`,
+            title: item.title || "Article ASSE",
+            source: item.source || "Presse Web",
+            link: item.link,
+            pubDate: item.pubDate
+          }));
+          renderArticles();
+        } else {
+          throw new Error("Aucun article reçu");
+        }
+      } catch (e) {
+        console.warn("Passage aux actualités de secours :", e);
+        loadFallbackNews();
+      }
+    }
+
+    function formatArticleDate(iso) {
+      if (!iso) return "";
+      const d = new Date(iso);
+      if (isNaN(d)) return "";
+      const now = new Date();
+      const diffH = Math.round((now - d) / 36e5);
+      if (diffH < 1) return "à l'instant";
+      if (diffH < 24) return `il y a ${diffH} h`;
+      return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+    }
+
+    function loadFallbackNews() {
+      articlesData = [
+        { id: "news-1", title: "Svetlin, première sortie réussie avec l'ASSE", source: "Envertetcontretous.fr", link: "https://www.envertetcontretous.fr" },
+        { id: "news-2", title: "Irvin Cardona maillon fort du début de saison des Verts", source: "Evect", link: "https://www.envertetcontretous.fr" },
+        { id: "news-3", title: "Rôle dans le staff, Cathro, objectifs : Mangala s'exprime sur le projet", source: "Peuple-Vert.fr", link: "https://peuple-vert.fr" },
+        { id: "news-4", title: "Point complet sur la blessure de João Ferreira", source: "Foot Sur7", link: "https://www.footsur7.fr" },
+        { id: "news-5", title: "Ligue 2 : L'ASSE s'impose à domicile et garde la tête du classement", source: "MadeInSaintEtienne", link: "https://madeinsaint-etienne.com" }
+      ];
+      renderArticles();
+    }
+
+    function renderArticles(list = articlesData) {
+      const container = document.getElementById("news-container");
+      let visibleArticles = list.filter(a => !deletedArticleIds.includes(a.id));
+
+      if (!visibleArticles || visibleArticles.length === 0) {
+        container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.8rem;">Aucun article trouvé.</div>`;
+        return;
+      }
+
+      container.innerHTML = visibleArticles.map(a => `
+        <div class="news-item">
+          <a href="${a.link}" target="_blank">${a.title}</a>
+          <div class="news-meta">Source : ${a.source}${a.pubDate ? " · " + formatArticleDate(a.pubDate) : ""}</div>
+          <span class="news-delete" onclick="deleteArticle('${encodeURIComponent(a.id)}')">×</span>
+        </div>
+      `).join("");
+    }
+
+    function deleteArticle(encodedId) {
+      const id = decodeURIComponent(encodedId);
+      if (!deletedArticleIds.includes(id)) {
+        deletedArticleIds.push(id);
+        localStorage.setItem("deletedArticleIds", JSON.stringify(deletedArticleIds));
+      }
+      renderArticles();
+    }
+
+    function filterArticles() {
+      const q = document.getElementById("search-news").value.toLowerCase();
+      const filtered = articlesData.filter(a => a.title.toLowerCase().includes(q) || a.source.toLowerCase().includes(q));
+      renderArticles(filtered);
+    }
+
+    const moisSaison = [
+      { id: "08", name: "Août", journees: [1, 2, 3, 4] },
+      { id: "09", name: "Septembre", journees: [5, 6, 7] },
+      { id: "10", name: "Octobre", journees: [8, 9, 10, 11] },
+      { id: "11", name: "Novembre", journees: [12, 13, 14] },
+      { id: "12", name: "Décembre", journees: [15] },
+      { id: "01", name: "Janvier", journees: [16, 17, 18, 19] },
+      { id: "02", name: "Février", journees: [20, 21, 22, 23] },
+      { id: "03", name: "Mars", journees: [24, 25, 26] },
+      { id: "04", name: "Avril", journees: [27, 28, 29, 30, 31] },
+      { id: "05", name: "Mai", journees: [32, 33, 34] }
+    ];
+
+    const clubs = [
+      "AS Saint-Étienne", "FC Annecy", "USL Dunkerque", "FC Metz", "Montpellier HSC",
+      "Red Star FC", "Rodez AF", "EA Guingamp", "Pau FC", "Stade Lavallois",
+      "Stade de Reims", "Dijon FCO", "US Boulogne", "AS Nancy-Lorraine",
+      "Grenoble Foot 38", "Clermont Foot 63", "FC Sochaux-Montbéliard", "FC Nantes"
+    ];
+
+    let currentJournee = 2;
+    let seasonMatches = JSON.parse(localStorage.getItem("seasonMatches")) || {};
+
+    function generateDefaultJournee(j) {
+      let offset = (j - 1) % (clubs.length - 1);
+      let list = [];
+      let tempClubs = [...clubs];
+      
+      for (let i = 0; i < tempClubs.length / 2; i++) {
+        let homeIdx = (i + offset) % tempClubs.length;
+        let awayIdx = (tempClubs.length - 1 - i + offset) % tempClubs.length;
+        if (homeIdx === awayIdx) awayIdx = (awayIdx + 1) % tempClubs.length;
+        list.push({
+          home: tempClubs[homeIdx],
+          homeScore: "",
+          awayScore: "",
+          away: tempClubs[awayIdx]
+        });
+      }
+      return list;
+    }
+
+    function createOfficialMatches() {
+      return {
+        1: [
+          { home: "Clermont Foot 63", homeScore: 0, awayScore: 0, away: "Stade de Reims" },
+          { home: "FC Metz", homeScore: 2, awayScore: 1, away: "EA Guingamp", homeScorers: "P. Fall, G. Abuashvili", awayScorers: "A. Démouchy" },
+          { home: "FC Nantes", homeScore: 0, awayScore: 1, away: "Red Star FC", awayScorers: "K. Cabral" },
+          { home: "Rodez AF", homeScore: 3, awayScore: 1, away: "Stade Lavallois", homeScorers: "C. Issanchou, I. Baldé, O. Joly", awayScorers: "E. Clavreul" },
+          { home: "FC Sochaux-Montbéliard", homeScore: 0, awayScore: 3, away: "AS Saint-Étienne", awayScorers: "J. Breum, I. Cardona, I. Cardona" },
+          { home: "Pau FC", homeScore: 0, awayScore: 1, away: "FC Annecy", awayScorers: "A. Drouhin" },
+          { home: "USL Dunkerque", homeScore: 4, awayScore: 2, away: "Grenoble Foot 38", homeScorers: "V. Mayela, M. Decherf, E. Prutsev, E. Prutsef", awayScorers: "Y. Diaby. Y. Diaby" },
+          { home: "US Boulogne", homeScore: 0, awayScore: 0, away: "AS Nancy-Lorraine" },
+          { home: "Montpellier HSC", homeScore: 1, awayScore: 1, away: "Dijon FCO", homeScorers: "L. Megnan Pave", awayScorers: "A. Lembezat" }
+        ],
+        2: [
+          { home: "AS Nancy-Lorraine", homeScore: 0, awayScore: 1, away: "Montpellier HSC", awayScorers: "Y. Issoufou" },
+          { home: "Dijon FCO", homeScore: 0, awayScore: 1, away: "Pau FC", awayScorers: "B. Leye" },
+          { home: "Grenoble Foot 38", homeScore: 0, awayScore: 0, away: "FC Metz" },
+          { home: "EA Guingamp", homeScore: 1, awayScore: 0, away: "US Boulogne", homeScorers: "S. Kielt" },
+          { home: "Stade de Reims", homeScore: 3, awayScore: 3, away: "USL Dunkerque", homeScorers: "A. Tia, Y. Fofana, Y, Fofana", awayScorers: "A. Lebeau, S. Keita, T. Robinet" },
+          { home: "Stade Lavallois", homeScore: 2, awayScore: 1, away: "FC Nantes", homeScorers: "T. Dago, M. Houdayer", awayScorers: "H. Guirassy" },
+          { home: "Red Star FC", homeScore: 0, awayScore: 0, away: "FC Sochaux-Montbéliard" },
+          { home: "FC Annecy", homeScore: 2, awayScore: 0, away: "Rodez AF", homeScorers: "A. Larose, M. Sahi Dion" },
+          { home: "AS Saint-Étienne", homeScore: 3, awayScore: 1, away: "Clermont Foot 63", homeScorers: "I. Cardona, T. Ballo, J. Breum", awayScorers: "O. Diop" }
+        ],
+        3: [
+          { home: "USL Dunkerque", homeScore: 0, awayScore: 1, away: "Montpellier HSC", awayScorers: "N. Pays" },
+          { home: "Pau FC", homeScore: 0, awayScore: 1, away: "AS Nancy-Lorraine", awayScorers: "B. Bokangu" },
+          { home: "Clermont Foot 63", homeScore: 1, awayScore: 1, away: "Dijon FCO", homeScorers: "J. Nyindong", awayScorers: "J. Marié" },
+          { home: "FC Sochaux-Montbéliard", homeScore: 1, awayScore: 0, away: "EA Guingamp", homeScorers: "B. Fofana" },
+          { home: "US Boulogne", homeScore: 1, awayScore: 1, away: "Red Star FC", homeScorers: "A. Hbouch", awayScorers: "D. Durand" },
+          { home: "FC Metz", homeScore: 1, awayScore: 1, away: "Stade Lavallois", homeScorers: "P. Fall", awayScorers: "J. Maggiotti" },
+          { home: "FC Nantes", homeScore: 2, awayScore: 5, away: "Rodez AF", homeScorers: "K. Corredor, k. Corredor", awayScorers: "I. Baldé x3, R. Ponti, S. Sow (csc)" },
+          { home: "AS Saint-Étienne", homeScore: 4, awayScore: 0, away: "Grenoble Foot 38", homeScorers: "Á. Csongvai, T. Ballo, I. Cardona, Z. Davitashvili" },
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "FC Annecy" }
+        ],
+        4: [
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "Pau FC" },
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "USL Dunkerque" },
+          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "FC Metz" },
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "FC Nantes" },
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "AS Saint-Étienne" }
+        ],
+        5: [
+          { home: "US Boulogne", homeScore: "", awayScore: "", away: "Dijon FCO" },
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "FC Annecy" },
+          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "Red Star FC" },
+          { home: "Pau FC", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "EA Guingamp" },
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "Rodez AF" },
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "Montpellier HSC" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" }
+        ],
+        6: [
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "Stade Lavallois" },
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "Pau FC" },
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "FC Annecy" },
+          { home: "FC Sochaux-Montbéliard", homeScore: "", awayScore: "", away: "FC Nantes" },
+          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "AS Saint-Étienne" },
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "FC Metz" }
+        ],
+        7: [
+          { home: "Pau FC", homeScore: "", awayScore: "", away: "USL Dunkerque" },
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "Montpellier HSC" },
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" },
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "Dijon FCO" },
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
+          { home: "US Boulogne", homeScore: "", awayScore: "", away: "FC Nantes" },
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "Red Star FC" },
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "AS Saint-Étienne" }
+        ],
+        8: [
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "EA Guingamp" },
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
+          { home: "Pau FC", homeScore: "", awayScore: "", away: "Stade Lavallois" },
+          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "FC Annecy" },
+          { home: "FC Sochaux-Montbéliard", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "Red Star FC" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "Rodez AF" },
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "FC Metz" }
+        ],
+        9: [
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "Dijon FCO" },
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" },
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "Pau FC" },
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "USL Dunkerque" },
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "AS Saint-Étienne" },
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "Montpellier HSC" }
+        ],
+        10: [
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "Stade Lavallois" },
+          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "FC Metz" },
+          { home: "FC Sochaux-Montbéliard", homeScore: "", awayScore: "", away: "FC Annecy" },
+          { home: "US Boulogne", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "Rodez AF" },
+          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "EA Guingamp" },
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "FC Nantes" },
+          { home: "Pau FC", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "Red Star FC" }
+        ],
+        11: [
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "USL Dunkerque" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "Dijon FCO" },
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "AS Saint-Étienne" },
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "Montpellier HSC" },
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" },
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "Pau FC" }
+        ],
+        12: [
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "FC Metz" },
+          { home: "US Boulogne", homeScore: "", awayScore: "", away: "FC Annecy" },
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "Rodez AF" },
+          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "EA Guingamp" },
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "Red Star FC" },
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "Stade Lavallois" },
+          { home: "Pau FC", homeScore: "", awayScore: "", away: "FC Nantes" }
+        ],
+        13: [
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "AS Saint-Étienne" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "Rodez AF" },
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "Montpellier HSC" },
+          { home: "FC Sochaux-Montbéliard", homeScore: "", awayScore: "", away: "USL Dunkerque" },
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "Dijon FCO" },
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "Pau FC" },
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "Clermont Foot 63" }
+        ],
+        14: [
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" },
+          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "FC Metz" },
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "EA Guingamp" },
+          { home: "US Boulogne", homeScore: "", awayScore: "", away: "Pau FC" },
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "Stade Lavallois" },
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "FC Nantes" },
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "Red Star FC" }
+        ],
+        15: [
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "USL Dunkerque" },
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "Dijon FCO" },
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "FC Annecy" },
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
+          { home: "Pau FC", homeScore: "", awayScore: "", away: "AS Saint-Étienne" },
+          { home: "FC Sochaux-Montbéliard", homeScore: "", awayScore: "", away: "Montpellier HSC" },
+          { home: "US Boulogne", homeScore: "", awayScore: "", away: "Rodez AF" }
+        ],
+        16: [
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "Red Star FC" },
+          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "AS Saint-Étienne" },
+          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "Pau FC" },
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "EA Guingamp" },
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "Stade Lavallois" },
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" },
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "FC Nantes" }
+        ],
+        17: [
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "FC Annecy" },
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "FC Metz" },
+          { home: "FC Sochaux-Montbéliard", homeScore: "", awayScore: "", away: "Rodez AF" },
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "USL Dunkerque" },
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "EA Guingamp" },
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "Pau FC", homeScore: "", awayScore: "", away: "Stade de Reims" }
+        ],
+        18: [
+          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "FC Nantes" },
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "Dijon FCO" },
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "Red Star FC" },
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "FC Annecy" },
+          { home: "US Boulogne", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "Montpellier HSC" },
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" },
+          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "AS Saint-Étienne" },
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "Pau FC" }
+        ],
+        19: [
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
+          { home: "Pau FC", homeScore: "", awayScore: "", away: "FC Metz" },
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "USL Dunkerque" },
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "Rodez AF" },
+          { home: "FC Sochaux-Montbéliard", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "Stade Lavallois" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "EA Guingamp" },
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "Clermont Foot 63" }
+        ],
+        20: [
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "FC Nantes" },
+          { home: "FC Sochaux-Montbéliard", homeScore: "", awayScore: "", away: "Pau FC" },
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" },
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "FC Annecy" },
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "AS Saint-Étienne" },
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "Dijon FCO" },
+          { home: "US Boulogne", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "Montpellier HSC" },
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "USL Dunkerque" }
+        ],
+        21: [
+          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "Pau FC" },
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "EA Guingamp" },
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "Red Star FC" },
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
+          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "Stade Lavallois" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "FC Metz" }
+        ],
+        22: [
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
+          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" },
+          { home: "US Boulogne", homeScore: "", awayScore: "", away: "AS Saint-Étienne" },
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "Rodez AF" },
+          { home: "Pau FC", homeScore: "", awayScore: "", away: "Red Star FC" },
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "FC Nantes" },
+          { home: "FC Sochaux-Montbéliard", homeScore: "", awayScore: "", away: "Dijon FCO" },
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "FC Annecy" },
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "Montpellier HSC" }
+        ],
+        23: [
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" },
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "USL Dunkerque" },
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "Stade Lavallois" },
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "EA Guingamp" },
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "Pau FC" }
+        ],
+        24: [
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "Rodez AF" },
+          { home: "Pau FC", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "EA Guingamp" },
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "FC Annecy" },
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "FC Nantes" },
+          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "Dijon FCO" },
+          { home: "FC Sochaux-Montbéliard", homeScore: "", awayScore: "", away: "FC Metz" },
+          { home: "US Boulogne", homeScore: "", awayScore: "", away: "Stade Lavallois" },
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "Red Star FC" }
+        ],
+        25: [
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "Pau FC" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "AS Saint-Étienne" },
+          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "Montpellier HSC" },
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "USL Dunkerque" },
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "Dijon FCO" },
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "Grenoble Foot 38" }
+        ],
+        26: [
+          { home: "US Boulogne", homeScore: "", awayScore: "", away: "FC Metz" },
+          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "Rodez AF" },
+          { home: "Pau FC", homeScore: "", awayScore: "", away: "Montpellier HSC" },
+          { home: "FC Sochaux-Montbéliard", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" },
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "FC Annecy" },
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "Red Star FC" },
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "Stade Lavallois" },
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "FC Nantes" }
+        ],
+        27: [
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "USL Dunkerque" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "Dijon FCO" },
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "FC Metz" },
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "Pau FC" },
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "EA Guingamp" },
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "AS Saint-Étienne" }
+        ],
+        28: [
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "FC Annecy" },
+          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "Stade Lavallois" },
+          { home: "US Boulogne", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
+          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" },
+          { home: "FC Sochaux-Montbéliard", homeScore: "", awayScore: "", away: "Red Star FC" },
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "FC Nantes" },
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "Montpellier HSC" },
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "Pau FC", homeScore: "", awayScore: "", away: "Rodez AF" }
+        ],
+        29: [
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "FC Metz" },
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "EA Guingamp" },
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" },
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "FC Nantes" },
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "USL Dunkerque" },
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
+          { home: "Pau FC", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "AS Saint-Étienne" },
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" }
+        ],
+        30: [
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "FC Annecy" },
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "Pau FC" },
+          { home: "US Boulogne", homeScore: "", awayScore: "", away: "USL Dunkerque" },
+          { home: "FC Sochaux-Montbéliard", homeScore: "", awayScore: "", away: "Stade Lavallois" },
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "Dijon FCO" },
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "Montpellier HSC" },
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "Rodez AF" }
+        ],
+        31: [
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "FC Metz" },
+          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "FC Nantes" },
+          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" },
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "AS Saint-Étienne" },
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "Pau FC", homeScore: "", awayScore: "", away: "EA Guingamp" },
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "Red Star FC" }
+        ],
+        32: [
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "Stade Lavallois" },
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "Pau FC" },
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "FC Metz" },
+          { home: "FC Sochaux-Montbéliard", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
+          { home: "US Boulogne", homeScore: "", awayScore: "", away: "Montpellier HSC" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "Dijon FCO" },
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "USL Dunkerque" },
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "Rodez AF" }
+        ],
+        33: [
+          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "US Boulogne", homeScore: "", awayScore: "", away: "EA Guingamp" },
+          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "FC Annecy" },
+          { home: "Rodez AF", homeScore: "", awayScore: "", away: "AS Saint-Étienne" },
+          { home: "FC Sochaux-Montbéliard", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
+          { home: "FC Nantes", homeScore: "", awayScore: "", away: "Stade Lavallois" },
+          { home: "FC Metz", homeScore: "", awayScore: "", away: "Red Star FC" },
+          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" },
+          { home: "Pau FC", homeScore: "", awayScore: "", away: "Dijon FCO" }
+        ],
+        34: [
+          { home: "Dijon FCO", homeScore: "", awayScore: "", away: "Montpellier HSC" },
+          { home: "EA Guingamp", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "Red Star FC", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
+          { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "Pau FC" },
+          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "Rodez AF" },
+          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "USL Dunkerque" },
+          { home: "FC Annecy", homeScore: "", awayScore: "", away: "FC Nantes" },
+          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "FC Metz" },
+          { home: "Stade de Reims", homeScore: "", awayScore: "", away: "US Boulogne" }
+        ]
+      };
+    }
+
+    function pushToCloud() {
+      if (!cloudAvailable || !cloudReady || !gazetteDocRef) return;
+      gazetteDocRef.set({
+        seasonMatches,
+        topScorers,
+        clubPlayers: getClubPlayers()
+      }, { merge: true }).catch(e => console.warn("Erreur de synchronisation cloud :", e));
+    }
+
+    let firstSyncDone = false;
+
+    function localOnlyInit() {
+      if (!seasonMatches[1] || !seasonMatches[2]) {
+        seasonMatches = createOfficialMatches();
+      }
+      recomputeTopScorersFromMatches();
+      currentJournee = findNextJourneeToPlay();
+      setupSelects();
+      renderMatches();
+      renderStandingsAndStats();
+    }
+
+    // Écoute en temps réel : toute modif faite sur un autre appareil (téléphone, PC...)
+    // arrive ici automatiquement, sans avoir besoin de recharger la page.
+    function startCloudSync() {
+      if (!cloudAvailable) {
+        localOnlyInit();
+        return;
+      }
+      gazetteDocRef.onSnapshot(doc => {
+        if (doc.exists) {
+          const data = doc.data();
+          if (data.seasonMatches) seasonMatches = data.seasonMatches;
+          if (data.topScorers) topScorers = data.topScorers;
+          if (data.clubPlayers) localStorage.setItem("clubPlayers", JSON.stringify(data.clubPlayers));
+          localStorage.setItem("seasonMatches", JSON.stringify(seasonMatches));
+          localStorage.setItem("topScorers", JSON.stringify(topScorers));
+        } else if (!seasonMatches[1] || !seasonMatches[2]) {
+          seasonMatches = createOfficialMatches();
+        }
+        cloudReady = true;
+
+        if (!firstSyncDone) {
+          firstSyncDone = true;
+          recomputeTopScorersFromMatches();
+          currentJournee = findNextJourneeToPlay();
+          setupSelects();
+          if (!doc.exists) pushToCloud(); // crée le document cloud au tout premier lancement
+        }
+        renderMatches();
+        renderStandingsAndStats();
+      }, err => {
+        console.warn("Firestore indisponible, passage en mode local seul :", err);
+        cloudAvailable = false;
+        localOnlyInit();
+      });
+    }
+
+    // Trouve la première journée qui n'a pas encore tous ses scores saisis
+    function findNextJourneeToPlay() {
+      const maxJournee = moisSaison.reduce((max, m) => Math.max(max, ...m.journees), 1);
+      for (let j = 1; j <= maxJournee; j++) {
+        const matches = seasonMatches[j];
+        if (!matches || matches.length === 0) return j;
+        const complete = matches.every(m =>
+          m.homeScore !== "" && m.homeScore !== undefined && m.homeScore !== null &&
+          m.awayScore !== "" && m.awayScore !== undefined && m.awayScore !== null
+        );
+        if (!complete) return j;
+      }
+      return maxJournee; // tout est complet, on reste sur la dernière
+    }
+
+    function setupSelects() {
+      const mSel = document.getElementById("select-mois");
+      mSel.innerHTML = moisSaison.map(m => `<option value="${m.id}">${m.name}</option>`).join("");
+      
+      let currentMonthObj = moisSaison.find(m => m.journees.includes(currentJournee)) || moisSaison[0];
+      mSel.value = currentMonthObj.id;
+      
+      updateJourneeSelectOptions(currentMonthObj);
+      document.getElementById("select-journee").value = currentJournee;
+    }
+
+    function updateJourneeSelectOptions(monthObj) {
+      const jSel = document.getElementById("select-journee");
+      jSel.innerHTML = monthObj.journees.map(j => `<option value="${j}">Journée ${j}</option>`).join("");
+    }
+
+    function filterJourneesByMonth() {
+      const mId = document.getElementById("select-mois").value;
+      const mObj = moisSaison.find(m => m.id === mId) || moisSaison[0];
+      updateJourneeSelectOptions(mObj);
+      currentJournee = mObj.journees[0];
+      renderMatches();
+    }
+
+    function changeJournee() {
+      currentJournee = parseInt(document.getElementById("select-journee").value, 10);
+      renderMatches();
+    }
+
+    function renderMatches() {
+      document.getElementById("form-title").textContent = `SAISIR LES RÉSULTATS DE LA JOURNÉE ${currentJournee}`;
+      
+      if (!seasonMatches[currentJournee] || seasonMatches[currentJournee].length === 0) {
+        seasonMatches[currentJournee] = generateDefaultJournee(currentJournee);
+      }
+
+      const container = document.getElementById("match-list-container");
+      const matches = seasonMatches[currentJournee];
+      const clubPlayers = getClubPlayers();
+
+      function playerListHtml(idx, side, club) {
+        const players = (clubPlayers[club] || []).slice().sort((a,b) => a.localeCompare(b));
+        const items = players.length
+          ? players.map(p => `<div class="player-item" data-name="${p.toLowerCase()}" onclick="pickScorer(${idx}, '${side}', '${p.replace(/'/g, "\\'")}')">${p}</div>`).join("")
+          : `<div class="player-item" style="color: var(--text-muted); cursor: default;">Aucun joueur mémorisé pour l'instant — tape un nom ci-dessous</div>`;
+        const searchBox = players.length > 8
+          ? `<input type="text" class="player-search" placeholder="Rechercher..." oninput="filterPlayerList(this)" onclick="event.stopPropagation()">`
+          : "";
+        return `<div class="player-list" id="player-list-${side}-${idx}">${searchBox}${items}</div>`;
+      }
+
+      container.innerHTML = matches.map((m, idx) => `
+        <div class="match-row" style="flex-direction: column; align-items: stretch; gap: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span class="team-name team-home" style="cursor: pointer; text-decoration: underline dotted;" onclick="togglePlayerList(${idx}, 'home')">${m.home}</span>
+            <div class="score-inputs">
+              <input type="number" class="score-input" id="home-${idx}" value="${m.homeScore !== undefined ? m.homeScore : ''}" oninput="updateScoresFromInput()">
+              <span style="color: var(--text-muted);">-</span>
+              <input type="number" class="score-input" id="away-${idx}" value="${m.awayScore !== undefined ? m.awayScore : ''}" oninput="updateScoresFromInput()">
+            </div>
+            <span class="team-name team-away" style="cursor: pointer; text-decoration: underline dotted;" onclick="togglePlayerList(${idx}, 'away')">${m.away}</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <div style="flex: 1; position: relative;">
+              <input type="text" placeholder="Buteurs ${m.home} (clique sur le nom de l'équipe ↑)" id="scorers-home-${idx}" value="${m.homeScorers || ''}" oninput="updateScoresFromInput()" onblur="commitScorersToClub(${idx}, 'home', '${m.home.replace(/'/g, "\\'")}')" style="width: 100%; box-sizing: border-box; background: #0d0d0d; border: 1px solid var(--card-border); color: var(--text-light); border-radius: 6px; padding: 6px 8px; font-size: 0.75rem;">
+              ${playerListHtml(idx, 'home', m.home)}
+            </div>
+            <div style="flex: 1; position: relative;">
+              <input type="text" placeholder="Buteurs ${m.away} (clique sur le nom de l'équipe ↑)" id="scorers-away-${idx}" value="${m.awayScorers || ''}" oninput="updateScoresFromInput()" onblur="commitScorersToClub(${idx}, 'away', '${m.away.replace(/'/g, "\\'")}')" style="width: 100%; box-sizing: border-box; background: #0d0d0d; border: 1px solid var(--card-border); color: var(--text-light); border-radius: 6px; padding: 6px 8px; font-size: 0.75rem;">
+              ${playerListHtml(idx, 'away', m.away)}
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function updateScoresFromInput() {
+      const list = seasonMatches[currentJournee] || [];
+      list.forEach((m, idx) => {
+        const hVal = document.getElementById(`home-${idx}`)?.value;
+        const aVal = document.getElementById(`away-${idx}`)?.value;
+        m.homeScore = (hVal !== undefined && hVal !== "") ? parseInt(hVal, 10) : "";
+        m.awayScore = (aVal !== undefined && aVal !== "") ? parseInt(aVal, 10) : "";
+        m.homeScorers = document.getElementById(`scorers-home-${idx}`)?.value || "";
+        m.awayScorers = document.getElementById(`scorers-away-${idx}`)?.value || "";
+      });
+      localStorage.setItem("seasonMatches", JSON.stringify(seasonMatches));
+      recomputeTopScorersFromMatches();
+      renderStandingsAndStats();
+      pushToCloud();
+    }
+
+    // Mémorise les noms saisis dans un champ buteurs pour ce club (appelé quand on quitte le champ)
+    function commitScorersToClub(idx, side, club) {
+      const input = document.getElementById(`scorers-${side}-${idx}`);
+      if (!input) return;
+      Object.keys(parseScorersField(input.value)).forEach(name => addPlayerToClub(club, name));
+      pushToCloud();
+    }
+
+    // Parse un champ "Cardona, Cardona, Breum" ou "Cardona x2, Breum" en {nom: buts}
+    function parseScorersField(text) {
+      const tally = {};
+      if (!text) return tally;
+      text.split(",").forEach(token => {
+        token = token.trim();
+        if (!token) return;
+        const xMatch = token.match(/^(.+?)\s*x\s*(\d+)$/i);
+        let name, count;
+        if (xMatch) {
+          name = xMatch[1].trim();
+          count = parseInt(xMatch[2], 10);
+        } else {
+          name = token;
+          count = 1;
+        }
+        if (name) tally[name] = (tally[name] || 0) + count;
+      });
+      return tally;
+    }
+
+    // Reconstruit topScorers en ajoutant les buteurs saisis match par match
+    // par-dessus une base figée (les vrais totaux déjà connus avant l'automatisation),
+    // sans jamais perdre ces totaux de départ.
+    function recomputeTopScorersFromMatches() {
+      const totals = {}; // clé = nom en minuscules -> { name, club, goals }
+
+      function namesMatch(typed, full) {
+        const t = typed.trim().toLowerCase();
+        const f = full.trim().toLowerCase();
+        if (t === f) return true;
+        const fParts = f.split(/\s+/);
+        return fParts.includes(t) || t === fParts[fParts.length - 1];
+      }
+
+      Object.keys(seasonMatches).forEach(j => {
+        (seasonMatches[j] || []).forEach(m => {
+          const homeTally = parseScorersField(m.homeScorers);
+          Object.keys(homeTally).forEach(name => {
+            let key = name.trim().toLowerCase();
+            const existingKey = Object.keys(totals).find(k => namesMatch(name, totals[k].name));
+            if (existingKey) key = existingKey;
+            if (!totals[key]) totals[key] = { name: name.trim(), club: m.home, goals: 0 };
+            totals[key].goals += homeTally[name];
+          });
+          const awayTally = parseScorersField(m.awayScorers);
+          Object.keys(awayTally).forEach(name => {
+            let key = name.trim().toLowerCase();
+            const existingKey = Object.keys(totals).find(k => namesMatch(name, totals[k].name));
+            if (existingKey) key = existingKey;
+            if (!totals[key]) totals[key] = { name: name.trim(), club: m.away, goals: 0 };
+            totals[key].goals += awayTally[name];
+          });
+        });
+      });
+
+      const fromMatches = Object.values(totals);
+      if (fromMatches.length === 0) return; // rien saisi, on ne touche à rien
+
+      topScorers = fromMatches;
+      localStorage.setItem("topScorers", JSON.stringify(topScorers));
+    }
+
+    function saveCurrentJourneeScores(showAlert = false) {
+      updateScoresFromInput();
+      if (showAlert) alert(`Journée ${currentJournee} enregistrée avec succès !`);
+    }
+
+    function resetSeasonData() {
+      if (confirm("Voulez-vous réinitialiser le championnat, la liste des buteurs et restaurer les articles ?")) {
+        localStorage.removeItem("seasonMatches");
+        localStorage.removeItem("topScorers");
+        localStorage.removeItem("scorersBaseline");
+        localStorage.removeItem("deletedArticleIds");
+        deletedArticleIds = [];
+        seasonMatches = createOfficialMatches();
+        topScorers = [...defaultScorers];
+        currentJournee = 2;
+        setupSelects();
+        renderMatches();
+        renderStandingsAndStats();
+        loadArticles();
+        pushToCloud();
+      }
+    }
+
+    function renderStandingsAndStats() {
+      let teams = {};
+      clubs.forEach(c => teams[c] = { name: c, mj: 0, g: 0, n: 0, p: 0, bp: 0, bc: 0, db: 0, pts: 0 });
+
+      Object.keys(seasonMatches).forEach(j => {
+        (seasonMatches[j] || []).forEach(m => {
+          if (m.homeScore !== "" && m.awayScore !== "" && !isNaN(m.homeScore) && !isNaN(m.awayScore)) {
+            let h = teams[m.home], a = teams[m.away];
+            if (h && a) {
+              h.mj++; a.mj++;
+              h.bp += m.homeScore; h.bc += m.awayScore;
+              a.bp += m.awayScore; a.bc += m.homeScore;
+              if (m.homeScore > m.awayScore) { h.g++; h.pts += 3; a.p++; }
+              else if (m.homeScore < m.awayScore) { a.g++; a.pts += 3; h.p++; }
+              else { h.n++; h.pts++; a.n++; a.pts++; }
+              h.db = h.bp - h.bc; a.db = a.bp - a.bc;
+            }
+          }
+        });
+      });
+
+      const sorted = Object.values(teams).sort((a,b) => b.pts - a.pts || b.db - a.db || b.bp - a.bp);
+
+      document.getElementById("standings-body").innerHTML = sorted.map((t, i) => `
+        <tr class="${t.name.includes("Saint-Étienne") ? 'highlight-asse' : ''}">
+          <td class="col-left">${i+1}. ${t.name}</td>
+          <td>${t.mj}</td><td>${t.g}</td><td>${t.n}</td><td>${t.p}</td>
+          <td>${t.bp}</td><td>${t.bc}</td><td>${t.db > 0 ? '+'+t.db : t.db}</td>
+          <td><strong>${t.pts}</strong></td>
+        </tr>
+      `).join("");
+
+      let maxBP = -1, bestA = "-", maxBC = -1, worstD = "-";
+      sorted.forEach(t => {
+        if (t.bp > maxBP) { maxBP = t.bp; bestA = `${t.name} (${t.bp})`; }
+        if (t.bc > maxBC) { maxBC = t.bc; worstD = `${t.name} (${t.bc})`; }
+      });
+      document.getElementById("best-attack").textContent = bestA;
+      document.getElementById("worst-defense").textContent = worstD;
+
+      topScorers.sort((a,b) => b.goals - a.goals);
+      document.getElementById("top-scorers-body").innerHTML = topScorers.slice(0, 5).map((s, i) => `
+        <tr class="${s.club === 'ASSE' || s.club === 'Saint-Étienne' || s.club === 'AS Saint-Étienne' ? 'highlight-asse' : ''}">
+          <td>${i+1}</td>
+          <td class="col-left">${s.name}</td>
+          <td style="color: var(--text-muted);">${s.club}</td>
+          <td><strong>${s.goals}</strong></td>
+        </tr>
+      `).join("");
+    }
+
+    function addManualScorer() {
+      const name = prompt("Nom du joueur :");
+      const club = prompt("Club :");
+      const goals = parseInt(prompt("Nombre de buts :") || "0", 10);
+      if (name && club) {
+        topScorers.push({ name, club, goals });
+        localStorage.setItem("topScorers", JSON.stringify(topScorers));
+        renderStandingsAndStats();
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      startCloudSync();
+      loadArticles();
+      // Rafraîchissement automatique des actus toutes les 10 minutes
+      setInterval(loadArticles, 10 * 60 * 1000);
+    });
+  </script>
+</body>
+</html>
