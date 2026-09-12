@@ -636,29 +636,29 @@
           { home: "Stade de Reims", homeScore: "", awayScore: "", away: "FC Annecy" }
         ],
         4: [
-          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "Grenoble Foot 38" },
-          { home: "Rodez AF", homeScore: "", awayScore: "", away: "Pau FC" },
-          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "USL Dunkerque" },
-          { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
-          { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "US Boulogne" },
+          { home: "Stade Lavallois", homeScore: 0, awayScore: 3, away: "Grenoble Foot 38", awayScorers: "S. Diba, B. Mouazan, K. Fofana" },
+          { home: "Rodez AF", homeScore: 2, awayScore: 2, away: "Pau FC", homeScorers: "I. Baldé, O. Joly", awayScorers: "B. Leye x2" },
+          { home: "AS Nancy-Lorraine", homeScore: 2, awayScore: 0, away: "USL Dunkerque", homeScorers: "N. Fernandez-Veliz, B. Bokangu" },
+          { home: "Clermont Foot 63", homeScore: 0, awayScore: 0, away: "FC Sochaux-Montbéliard" },
+          { home: "Montpellier HSC", homeScore: 0, awayScore: 0, away: "US Boulogne" },
           { home: "Red Star FC", homeScore: "", awayScore: "", away: "Stade de Reims" },
           { home: "FC Annecy", homeScore: "", awayScore: "", away: "FC Metz" },
           { home: "EA Guingamp", homeScore: "", awayScore: "", away: "FC Nantes" },
           { home: "Dijon FCO", homeScore: "", awayScore: "", away: "AS Saint-Étienne" }
         ],
         5: [
-          { home: "US Boulogne", homeScore: "", awayScore: "", away: "Dijon FCO" },
-          { home: "Grenoble Foot 38", homeScore: "", awayScore: "", away: "FC Annecy" },
-          { home: "USL Dunkerque", homeScore: "", awayScore: "", away: "Clermont Foot 63" },
-          { home: "Stade Lavallois", homeScore: "", awayScore: "", away: "Red Star FC" },
-          { home: "Pau FC", homeScore: "", awayScore: "", away: "FC Sochaux-Montbéliard" },
+          { home: "US Boulogne", homeScore: 1, awayScore: 1, away: "Dijon FCO", homeScorers: "T. Epailly", awayScorers: "T. Dong" },
+          { home: "Grenoble Foot 38", homeScore: 1, awayScore: 2, away: "FC Annecy", homeScorers: "S. Diba", awayScorers: "T. Rambaud, P. Venot" },
+          { home: "USL Dunkerque", homeScore: 1, awayScore: 1, away: "Clermont Foot 63", homeScorers: "Opa Sanganté", awayScorers: "C. Okou" },
+          { home: "Stade Lavallois", homeScore: 1, awayScore: 2, away: "Red Star FC", homeScorers: "M. Houdayer", awayScorers: "S. Renel, D. Durand" },
+          { home: "Pau FC", homeScore: 1, awayScore: 1, away: "FC Sochaux-Montbéliard", homeScorers: "L. Rajot", awayScorers: "M. Clairicia" },
           { home: "Stade de Reims", homeScore: "", awayScore: "", away: "EA Guingamp" },
           { home: "FC Metz", homeScore: "", awayScore: "", away: "Rodez AF" },
           { home: "AS Saint-Étienne", homeScore: "", awayScore: "", away: "Montpellier HSC" },
-          { home: "FC Nantes", homeScore: "", awayScore: "", away: "AS Nancy-Lorraine" }
+          { home: "FC Nantes", homeScore: 1, awayScore: 0, away: "AS Nancy-Lorraine", homeScorers: "T. Robinet" }
         ],
         6: [
-          { home: "AS Nancy-Lorraine", homeScore: "", awayScore: "", away: "Stade de Reims" },
+          { home: "AS Nancy-Lorraine", homeScore: 1, awayScore: 2, away: "Stade de Reims" },
           { home: "Clermont Foot 63", homeScore: "", awayScore: "", away: "US Boulogne" },
           { home: "Dijon FCO", homeScore: "", awayScore: "", away: "Stade Lavallois" },
           { home: "Montpellier HSC", homeScore: "", awayScore: "", away: "Pau FC" },
@@ -1009,6 +1009,7 @@
         return;
       }
       gazetteDocRef.onSnapshot(doc => {
+        let needsCloudPush = false;
         if (doc.exists) {
           const data = doc.data();
           if (data.seasonMatches) seasonMatches = data.seasonMatches;
@@ -1018,18 +1019,27 @@
           localStorage.setItem("topScorers", JSON.stringify(topScorers));
         } else if (!seasonMatches[1] || !seasonMatches[2]) {
           seasonMatches = createOfficialMatches();
+          needsCloudPush = true;
         }
         cloudReady = true;
+
+        // Fusionne tout nouveau joueur ajouté dans le fichier (seedClubPlayers) avec la base
+        // reçue du cloud, et renvoie immédiatement le résultat vers le cloud si ça a changé
+        // — sans ça, les nouveaux noms restaient invisibles tant qu'aucune action n'était faite.
+        const before = localStorage.getItem("clubPlayers");
+        getClubPlayers(); // fait la fusion et met à jour localStorage si besoin
+        if (localStorage.getItem("clubPlayers") !== before) needsCloudPush = true;
 
         if (!firstSyncDone) {
           firstSyncDone = true;
           recomputeTopScorersFromMatches();
           currentJournee = findNextJourneeToPlay();
           setupSelects();
-          if (!doc.exists) pushToCloud(); // crée le document cloud au tout premier lancement
+          if (!doc.exists) needsCloudPush = true; // crée le document cloud au tout premier lancement
         }
         renderMatches();
         renderStandingsAndStats();
+        if (needsCloudPush) pushToCloud();
       }, err => {
         console.warn("Firestore indisponible, passage en mode local seul :", err);
         cloudAvailable = false;
